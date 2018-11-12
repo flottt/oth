@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+<meta charset="utf-8" />
+<meta name="date" content="2018-05-28" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="TI10.css">
+<title>TI: Uebungsblatt 10</title>
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async>
+</script>
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+</head><body>
+<title-left>Theoretische Informatik Übungsblatt 10. <a href="TI10.pdf">(als pdf anzeigen)</a></title-left>
+<title-right>Ott Florian</title-right>
+
+<h2 id="Aufgabe0">Quickies</h2>
+<h3>Pumping-Lemma für <del>kontextfreie</del> <ins>reguläre</ins> Sprachen</h3>
+<Lemma-VSS><Lemma-Head>Voraussetzung: </Lemma-Head><br />
+Sei L eine <del>kontextfreie</del> <ins>reguläre</ins> Sprache. </Lemma-VSS><br />
+<br />
+<Lemma-Behauptung><Lemma-Head>Folgerung: </Lemma-Head><br />
+\(\exists \text{ Pumping-Zahl } p \in \mathbb{N} \hspace{1em} \forall \text{ Wort } w \in L \text{ mit } | w | \geq p \hspace{1em} \exists \text{ Aufteilung } w = \) <del>ab</del>cde: <br />
+<ul><li>
+<Pumping-Garantie-Wort>Pumping-Garantie 1:</Pumping-Garantie-Wort> \(1 \leq | \)<del>b</del>\(d | \leq | \)<del>b</del>\(cd | \leq p\)
+</li><li>
+<Pumping-Garantie-Wort>Pumping-Garantie 2:</Pumping-Garantie-Wort> \(\forall i \in \mathbb{N}_0: \hspace{0.5em} \)<del>ab</del><sup><del>i</del></sup>\(cd^ie \in L\)
+</li></ul>
+</Lemma-Behauptung>
+
+<h2 id="Aufgabe1">Aufgabe 1</h2>
+<pre class="prettyprint">
+abstract class DEA {
+  Knoten[] knoten; 
+  char[] alphabet; 
+  abstract function delta(Knoten, char) returns Knoten; 
+  abstract function changeDelta(Knoten, char, neuerKnoten) returns void; 
+  Knoten start; 
+  Knoten[] endzustaende; 
+}
+
+private function toArray(int x, int y) return int[] {
+  if (x > y) return new int[2] {y, x};
+  else return new int[2] {x, y};
+}
+
+function tablefilling(DEA eingabeDEA) returns DEA {
+  int n = eingabeDEA.knoten.length;          // Anzahl der Knoten 
+  int nz = eingabeDEA.alphabet.length;       // Anzahl Buchstaben in Sigma 
+  int[][][][] tabelle = new int[n][][][];         
+      // tabelle[Zeile][Spalte][Liste][2 für zeile,spalte] 
+      // wenn angekreuzt, dann [Zeile][Spalte] = NULL 
+  
+  // falls nur quadratische Arrays möglich: tabelle = int[n][n][nz][2];
+  
+  // Tabelle initialisieren 
+  // und Kreuze setzen bei unterschiedlichen Endzustandsarten. 
+  for (int zeile = 1; zeile < n; zeile++) {   //tabelle[0] hat 0 Einträge. 
+    tabelle[zeile] = new int[zeile][][];
+    for (int spalte = 0; spalte < zeile; spalte++) {
+      boolean knoten_i_ist_Endzustand = eingabeDEA.endzustaende.contains(eingabeDEA.knoten[zeile]); 
+      boolean knoten_j_ist_Endzustand = eingabeDEA.endzustaende.contains(eingabeDEA.knoten[spalte]); 
+      boolean gleiche_Endzustand = (knoten_i_ist_Endzustand == knoten_j_ist_Endzustand);
+      
+      if (gleiche_Endzustand) {
+        tabelle[zeile][spalte] = new int[nz][];
+        
+        // buchstabe ist der Buchstabenindex in Sigma. 
+        for (int buchstabe = 0; buchstabe < nz; buchstabe++) {   
+          int x = eingabeDEA.delta(eingabeDEA.knoten[zeile], eingabeDEA.buchstabe[buchstabe]).index;
+          int y = eingabeDEA.delta(eingabeDEA.knoten[spalte], eingabeDEA.buchstabe[buchstabe]).index;
+          tabelle[zeile][spalte][buchstabe] = toArray(x, y);
+        }
+      } else { // !gleiche_Endzustand
+        tabelle[zeile][spalte] = null; 
+      }
+    }
+  }
+  
+  //Tabelle initialisiert. Jetzt Kreuze setzen. 
+  boolean job = true;                             // job = !fertig. 
+  while(job) {
+    job = false; 
+    for (int zeile = 1; zeile < n; zeile++) {
+      for (int spalte = 0; spalte < zeile; spalte++) {
+        if (tabelle[zeile][spalte] != null) {
+          for (int buchstabe = 0; buchstabe < nz; buchstabe++) {
+            int x = tabelle[zeile][spalte][buchstabe][0]; 
+            int y = tabelle[zeile][spalte][buchstabe][1]; 
+            if (tabelle[x][y] == null) {
+               job = true;
+               tabelle[zeile][spalte] = null;
+               break; //buchstabenarray
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  DEA resultDEA = eingabeDEA; 
+  int delete = 0;                          // Zähler für gelöschte Knoten
+  
+  for (int zeile = n; zeile < n; zeile++) if (tabelle[zeile] != null) {                    
+    // der Knoten wurde noch nicht gelöscht. 
+    
+    for (int spalte = 0; spalte < zeile; spalte++) if (tabelle[zeile][spalte] != null) {   
+    // kein Kreuz
+
+    //biege alle Pfeile, die auf knoten[zeile] zeigen, auf knoten[spalte] um. 
+        for (int knoten = 0; knoten < n; knoten++) if (resultDEA.knoten[knoten] != null) { 
+                                            // es reicht, die Knoten zu prüfen, die es noch gibt
+          for (int buchstabe = 0; buchstabe < nz; buchstabe++) {
+            if (eingabeDEA.delta(eingabeDEA.knoten[knoten], eingabeDEA.buchstabe[buchstabe]) == 
+                == eingabeDEA.knoten[zeile]) {
+              resultDEA.changeDelta(
+               /* from */ eingabeDEA.knoten[knoten], eingabeDEA.buchstabe[buchstabe], 
+               /* to   */ eingabeDEA.knoten[spalte]);
+            }
+          }
+        }
+        
+        //biege ggf. auch den Startpfeil um
+        if (resultDEA.start == resultDEA.knoten[zeile]) {
+          resultDEA.start = resultDEA.knoten[spalte];
+        }
+        
+        // lösche Knoten. 
+        resultDEA.knoten[zeile] = null; 
+        delete++;
+        // lösche Knotenzeile. 
+        // Weil wir mit zeilen-for-Schleife von unten begonnen haben, 
+        //  wird die zugehörige Spalte nicht mehr abgefragt. 
+        tabelle[zeile] = null; 
+        break;      // break spalte = continue zeile // aktuelle Zeile wurde gelöscht. 
+      
+    } // next spalte
+  } // next zeile
+  
+  if (delete == 0) {
+    return eingabeDEA; 
+  } else {           // null aus knoten-Array entfernen 
+    Knoten[] knotenmenge = new Knoten[n - delete]; 
+    
+    for (int knoten = 0, knotenNeu = 0; knoten < nz; knoten++) {
+      if (resultDEA[knoten] != null) {
+        knotenmenge[knotenNeu] = resultDEA[knoten];
+        knotenNeu++; 
+      }
+    }
+    resultDEA.knoten = knotenmenge; 
+    return resultDEA;
+  }
+}</pre>
+
+<h2 id="Aufgabe2">Aufgabe 2</h2>
+<h4>gegebene Grammatik: </h4> <br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>S</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>D</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>C</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>D</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>a</grammatik-ts><grammatik-ts>b</grammatik-ts><grammatik-ts>d</grammatik-ts><grammatik-ts>d</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>B</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>A</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>B</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>B</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>B</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>D</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>d</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>S</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>C</grammatik-nts></grammatik-rechts></grammatik-regel><br /> <br />
+
+
+<h4>Zyklen bestimmen</h4><br />
+
+<grammatik-regel>
+<grammatik-nts>C</grammatik-nts><grammatik-pfeil>&rarr;</grammatik-pfeil>
+<grammatik-nts>D</grammatik-nts><grammatik-pfeil>&rarr;</grammatik-pfeil>
+<grammatik-nts>S</grammatik-nts><grammatik-pfeil>&rarr;</grammatik-pfeil>
+<grammatik-nts>A</grammatik-nts><grammatik-pfeil>&harr;</grammatik-pfeil>
+<grammatik-nts>B</grammatik-nts>
+ </grammatik-regel> <br />
+
+
+<h4>Zyklen eliminieren und Umsortieren </h4><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>C</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>D</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>d</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>C</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>a</grammatik-ts><grammatik-ts>b</grammatik-ts><grammatik-ts>d</grammatik-ts><grammatik-ts>d</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>D</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>D</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>d</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>C</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>S</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>D</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>A</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+
+<h4>Chomsky-Normalform-Algorithmus anwenden </h4> <br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>C</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>X</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>Y</grammatik-nts><grammatik-nts>F</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>X</grammatik-nts><grammatik-nts>G</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>d</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>C</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>X</grammatik-nts><grammatik-nts>H</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>D</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>X</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>Y</grammatik-nts><grammatik-nts>F</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>X</grammatik-nts><grammatik-nts>G</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>d</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>C</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>S</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>X</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>Y</grammatik-nts><grammatik-nts>F</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>X</grammatik-nts><grammatik-nts>G</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>A</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>X</grammatik-nts><grammatik-nts>A</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>Y</grammatik-nts><grammatik-nts>F</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>X</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>Y</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>b</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>Z</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>d</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>F</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>A</grammatik-nts><grammatik-nts>A</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>G</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>A</grammatik-nts><grammatik-nts>D</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>H</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>Y</grammatik-nts><grammatik-nts>J</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>J</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>Z</grammatik-nts><grammatik-nts>Z</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+
+<h2 id="Aufgabe3">Aufgabe 3</h2>
+<h4>Rekonstruierte Teilgrammatik </h4>
+<grammatik-regel><grammatik-links><grammatik-nts>S</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>A</grammatik-nts><grammatik-nts>B</grammatik-nts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>A</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>a</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>B</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-nts>B</grammatik-nts><grammatik-nts>R</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>C</grammatik-nts><grammatik-nts>B</grammatik-nts><regel-oder> | </regel-oder><grammatik-nts>A</grammatik-nts><grammatik-nts>B</grammatik-nts><regel-oder> | </regel-oder><grammatik-ts>b</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>C</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>c</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<grammatik-regel><grammatik-links><grammatik-nts>R</grammatik-nts></grammatik-links><grammatik-pfeil>&rarr;</grammatik-pfeil><grammatik-rechts><grammatik-ts>r</grammatik-ts></grammatik-rechts></grammatik-regel><br />
+
+<h4>CNF / Startsymbol?</h4>
+Ja, die Grammatik ist in Chomsky-Normalform. <br />
+Ja, die Grammatik definiert eindeutig das Startsymbol <grammatik-nts>S</grammatik-nts>.
+
+<h4>Ableitungssequenz</h4>
+<grammatik-nts>S</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>AB</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACBR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACAABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-ts>acaabr</grammatik-ts> <br />
+
+
+<grammatik-nts>S</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>AB</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>AAB</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-ts>aab</grammatik-ts> <br />
+
+
+<grammatik-nts>S</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>AB</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACBR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACABRR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACACBRR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACACABRR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-ts>acacabrr</grammatik-ts> <br />
+
+
+<grammatik-nts>S</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>AB</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACBR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACACBR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-nts>ACACABR</grammatik-nts> <grammatik-pfeil>&rArr;</grammatik-pfeil>
+<grammatik-ts>acacabr</grammatik-ts> <br />
+
+<h4>Ableitungsbaum verändern</h4>
+<div id="Ableitungsbaum">
+Gegeben: acabr
+<Baum-Knoten  data-line="_NODE_002"  style="left: 160pt; top: 10pt; "><grammatik-nts>S</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_003"  style="left: 90pt; top: 80pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_004"  style="left: 160pt; top: 80pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_005"  style="left: 160pt; top: 150pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_006"  style="left: 230pt; top: 150pt; "><grammatik-nts>R</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_007"  style="left: 90pt; top: 220pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_008"  style="left: 160pt; top: 220pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_009"  style="left: 90pt; top: 290pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_010"  style="left: 160pt; top: 290pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+
+<Baum-Linie-Senkrecht style="left: 175pt; top: 43pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 56pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 57pt; top: 126pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 175pt; top: 113pt;"> </Baum-Linie-Senkrecht>		
+<Baum-Linie-rechts style="left: 154pt; top: 126pt; "> </Baum-Linie-rechts>
+<Baum-Linie-Senkrecht style="left: 175pt; top: 183pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 196pt; "> </Baum-Linie-links>	
+<Baum-Linie-rechts style="left: 224pt; top: 196pt; "> </Baum-Linie-rechts>
+<Baum-Linie-links style="left: 57pt; top: 266pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 175pt; top: 253pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 266pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 57pt; top: 336pt; "> </Baum-Linie-links>	
+<Baum-Linie-rechts style="left: 154pt; top: 336pt; "> </Baum-Linie-rechts>
+
+<Baum-Knoten  data-line="_NODE_012"  style="left: 20pt; top: 150pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_013"  style="left: 20pt; top: 290pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_014"  style="left: 20pt; top: 360pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_015"  style="left: 230pt; top: 360pt; "><grammatik-ts>b</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_016"  style="left: 300pt; top: 220pt; "><grammatik-ts>r</grammatik-ts></Baum-Knoten>
+
+
+<Baum-Knoten  data-line="_NODE_020"  style="left: 560pt; top: 10pt; "><grammatik-nts>S</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_021"  style="left: 490pt; top: 80pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_022"  style="left: 560pt; top: 80pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_023"  style="left: 560pt; top: 150pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_024"  style="left: 630pt; top: 150pt; "><grammatik-nts>R</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_025"  style="left: 490pt; top: 220pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten>
+<Baum-Knoten-Gelb  data-line="_NODE_026"  style="left: 560pt; top: 220pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Gelb>
+<Baum-Knoten  data-line="_NODE_027"  style="left: 490pt; top: 290pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_028"  style="left: 560pt; top: 290pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_029"  style="left: 420pt; top: 150pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_030"  style="left: 420pt; top: 290pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_031"  style="left: 420pt; top: 360pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_033"  style="left: 700pt; top: 220pt; "><grammatik-ts>r</grammatik-ts></Baum-Knoten>
+
+<Baum-Knoten-Changed  data-line="_NODE_035"  style="left: 490pt; top: 360pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_036"  style="left: 560pt; top: 360pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+
+<Baum-Knoten-Changed  data-line="_NODE_037"  style="left: 420pt; top: 430pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_038"  style="left: 630pt; top: 430pt; "><grammatik-ts>b</grammatik-ts></Baum-Knoten-Changed>
+
+
+<Baum-Linie-Senkrecht style="left: 575pt; top: 43pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 56pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 457pt; top: 126pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 575pt; top: 113pt;"> </Baum-Linie-Senkrecht>		
+<Baum-Linie-rechts style="left: 554pt; top: 126pt; "> </Baum-Linie-rechts>
+<Baum-Linie-Senkrecht style="left: 575pt; top: 183pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 196pt; "> </Baum-Linie-links>	
+<Baum-Linie-rechts style="left: 624pt; top: 196pt; "> </Baum-Linie-rechts>
+<Baum-Linie-links style="left: 457pt; top: 266pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 575pt; top: 253pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 266pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 457pt; top: 336pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht-Changed style="left: 575pt; top: 323pt;"> </Baum-Linie-Senkrecht-Changed>	
+<Baum-Linie-links-Changed style="left: 527pt; top: 336pt; "> </Baum-Linie-links-Changed>
+
+<Baum-Linie-links-Changed style="left: 457pt; top: 406pt; "> </Baum-Linie-links-Changed>
+<Baum-Linie-rechts-Changed style="left: 554pt; top: 406pt; "> </Baum-Linie-rechts-Changed>
+
+<!-- aab -->
+<Baum-Knoten  data-line="_NODE_042"  style="left: 160pt; top: 550pt; "><grammatik-nts>S</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_043"  style="left: 90pt; top: 620pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_044"  style="left: 160pt; top: 620pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten-Changed  data-line="_NODE_045"  style="left: 90pt; top: 690pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_046"  style="left: 160pt; top: 690pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten  data-line="_NODE_047"  style="left: 20pt; top: 690pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten-Changed  data-line="_NODE_048"  style="left: 20pt; top: 760pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_049"  style="left: 230pt; top: 760pt; "><grammatik-ts>b</grammatik-ts></Baum-Knoten-Changed>
+
+<Baum-Linie-Senkrecht style="left: 175pt; top: 583pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 596pt; "> </Baum-Linie-links>	 
+<Baum-Linie-links style="left: 57pt; top: 666pt; "> </Baum-Linie-links>	 
+<Baum-Linie-Senkrecht-Changed style="left: 175pt; top: 653pt;"> </Baum-Linie-Senkrecht-Changed>	
+<Baum-Linie-links-Changed style="left: 127pt; top: 666pt; "> </Baum-Linie-links-Changed>	 
+<Baum-Linie-links-Changed style="left: 57pt; top: 736pt; "> </Baum-Linie-links-Changed>	 
+<Baum-Linie-rechts-Changed style="left: 154pt; top: 736pt; "> </Baum-Linie-rechts-Changed>
+
+
+
+<!-- acacabrr-->
+<Baum-Knoten  data-line="_NODE_052"  style="left: 160pt; top: 900pt; "><grammatik-nts>S</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_053"  style="left: 90pt; top: 970pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten-Gelb  data-line="_NODE_054"  style="left: 160pt; top: 970pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Gelb>
+<Baum-Knoten  data-line="_NODE_055"  style="left: 160pt; top: 1040pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_056"  style="left: 230pt; top: 1040pt; "><grammatik-nts>R</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_057"  style="left: 90pt; top: 1110pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_058"  style="left: 160pt; top: 1110pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_059"  style="left: 90pt; top: 1180pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_060"  style="left: 160pt; top: 1180pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_061"  style="left: 20pt; top: 1040pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_062"  style="left: 20pt; top: 1180pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_063"  style="left: 20pt; top: 1250pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_065"  style="left: 300pt; top: 1110pt; "><grammatik-ts>r</grammatik-ts></Baum-Knoten>
+
+<Baum-Linie-Senkrecht style="left: 175pt; top: 933pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 946pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 57pt; top: 1016pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 175pt; top: 1003pt;"> </Baum-Linie-Senkrecht>		
+<Baum-Linie-rechts style="left: 154pt; top: 1016pt; "> </Baum-Linie-rechts>
+<Baum-Linie-Senkrecht style="left: 175pt; top: 1073pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 1086pt; "> </Baum-Linie-links>	
+<Baum-Linie-rechts style="left: 224pt; top: 1086pt; "> </Baum-Linie-rechts>
+<Baum-Linie-links style="left: 57pt; top: 1156pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 175pt; top: 1143pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 127pt; top: 1156pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 57pt; top: 1226pt; "> </Baum-Linie-links>	
+
+<Baum-Linie-rechts-Changed style="left: 154pt; top: 1226pt; "> </Baum-Linie-rechts-Changed>
+<Baum-Linie-Senkrecht-Changed style="left: 175pt; top: 1213pt;"> </Baum-Linie-Senkrecht-Changed>
+
+<Baum-Knoten-Changed  data-line="_NODE_067"  style="left: 160pt; top: 1250pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_068"  style="left: 230pt; top: 1250pt; "><grammatik-nts>R</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_069"  style="left: 90pt; top: 1320pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_070"  style="left: 160pt; top: 1320pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_071"  style="left: 90pt; top: 1390pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_072"  style="left: 160pt; top: 1390pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_074"  style="left: 20pt; top: 1390pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_075"  style="left: 20pt; top: 1460pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_076"  style="left: 90pt; top: 1460pt; "><grammatik-ts>b</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_077"  style="left: 300pt; top: 1320pt; "><grammatik-ts>r</grammatik-ts></Baum-Knoten-Changed>
+
+
+<Baum-Linie-Senkrecht-Changed style="left: 175pt; top: 1283pt;"> </Baum-Linie-Senkrecht-Changed>	
+<Baum-Linie-links-Changed style="left: 127pt; top: 1296pt; "> </Baum-Linie-links-Changed>	
+<Baum-Linie-rechts-Changed style="left: 224pt; top: 1296pt; "> </Baum-Linie-rechts-Changed>
+<Baum-Linie-links-Changed style="left: 57pt; top: 1366pt; "> </Baum-Linie-links-Changed>	
+<Baum-Linie-Senkrecht-Changed style="left: 175pt; top: 1353pt;"> </Baum-Linie-Senkrecht-Changed>	
+<Baum-Linie-links-Changed style="left: 127pt; top: 1366pt; "> </Baum-Linie-links-Changed>	
+<Baum-Linie-links-Changed style="left: 57pt; top: 1436pt; "> </Baum-Linie-links-Changed>	
+<Baum-Linie-links-Changed style="left: 127pt; top: 1436pt; "> </Baum-Linie-links-Changed>	
+
+
+<!-- acacabr -->
+
+<Baum-Knoten  data-line="_NODE_081"  style="left: 560pt; top: 900pt; "><grammatik-nts>S</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_082"  style="left: 490pt; top: 970pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_083"  style="left: 560pt; top: 970pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten-Gelb  data-line="_NODE_084"  style="left: 560pt; top: 1040pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Gelb>
+<Baum-Knoten  data-line="_NODE_085"  style="left: 630pt; top: 1040pt; "><grammatik-nts>R</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_086"  style="left: 490pt; top: 1110pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_087"  style="left: 560pt; top: 1110pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_088"  style="left: 490pt; top: 1180pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_089"  style="left: 560pt; top: 1180pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_090"  style="left: 420pt; top: 1040pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_091"  style="left: 420pt; top: 1180pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_092"  style="left: 420pt; top: 1250pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten>
+<Baum-Knoten  data-line="_NODE_094"  style="left: 700pt; top: 1110pt; "><grammatik-ts>r</grammatik-ts></Baum-Knoten>
+
+<Baum-Linie-Senkrecht style="left: 575pt; top: 933pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 946pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 457pt; top: 1016pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 575pt; top: 1003pt;"> </Baum-Linie-Senkrecht>		
+<Baum-Linie-rechts style="left: 554pt; top: 1016pt; "> </Baum-Linie-rechts>
+<Baum-Linie-Senkrecht style="left: 575pt; top: 1073pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 1086pt; "> </Baum-Linie-links>	
+<Baum-Linie-rechts style="left: 624pt; top: 1086pt; "> </Baum-Linie-rechts>
+<Baum-Linie-links style="left: 457pt; top: 1156pt; "> </Baum-Linie-links>	
+<Baum-Linie-Senkrecht style="left: 575pt; top: 1143pt;"> </Baum-Linie-Senkrecht>	
+<Baum-Linie-links style="left: 527pt; top: 1156pt; "> </Baum-Linie-links>	
+<Baum-Linie-links style="left: 457pt; top: 1226pt; "> </Baum-Linie-links>	
+
+<Baum-Linie-Senkrecht-Changed style="left: 575pt; top: 1213pt; height: 105pt;"> </Baum-Linie-Senkrecht-Changed>		
+<Baum-Linie-links-Changed style="left: 527pt; top: 1296pt; "> </Baum-Linie-links-Changed>
+
+
+<Baum-Knoten-Changed  data-line="_NODE_098"  style="left: 490pt; top: 1320pt; "><grammatik-nts>C</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_099"  style="left: 560pt; top: 1320pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_100"  style="left: 490pt; top: 1390pt; "><grammatik-nts>A</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_101"  style="left: 560pt; top: 1390pt; "><grammatik-nts>B</grammatik-nts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_103"  style="left: 420pt; top: 1390pt; "><grammatik-ts>c</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_104"  style="left: 420pt; top: 1460pt; "><grammatik-ts>a</grammatik-ts></Baum-Knoten-Changed>
+<Baum-Knoten-Changed  data-line="_NODE_105"  style="left: 490pt; top: 1460pt; "><grammatik-ts>b</grammatik-ts></Baum-Knoten-Changed>
+
+<Baum-Linie-links-Changed style="left: 457pt; top: 1366pt; "> </Baum-Linie-links-Changed>
+<Baum-Linie-Senkrecht-Changed style="left: 575pt; top: 1353pt;"> </Baum-Linie-Senkrecht-Changed>	
+<Baum-Linie-links-Changed style="left: 527pt; top: 1366pt; "> </Baum-Linie-links-Changed>
+<Baum-Linie-links-Changed style="left: 457pt; top: 1436pt; "> </Baum-Linie-links-Changed>
+<Baum-Linie-links-Changed style="left: 527pt; top: 1436pt; "> </Baum-Linie-links-Changed>
+</div>
+
+</body></html>

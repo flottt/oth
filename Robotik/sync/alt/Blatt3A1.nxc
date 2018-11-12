@@ -1,0 +1,102 @@
+#define ANZAHLTIMER 5
+#define EV01   0x0001
+#define EV02   0x0002
+#define EV03   0x0004
+#define EV04   0x0008
+#define EV05   0x0010
+#define EV06   0x0020
+#define EV07   0x0040
+#define EV08   0x0080
+#define EV09   0x0100
+#define EV10   0x0200
+#define EV11   0x0400
+#define EV12   0x0800
+#define EV13   0x1000
+#define EV14   0x2000
+#define EV15   0x4000
+#define EV16   0x8000
+#define TIMER1   1
+#define TIMER2   2
+#define TIMER3   3
+#define TIMER4   4
+#define eventIsPresent(a) ( event & a )
+
+
+typedef int EventType;
+typedef struct {
+  EventType event;
+  bool lauft;
+  int zeit;
+  long wannFertig;
+} TimerType;
+
+TimerType timerArray[ANZAHLTIMER];
+
+void setEvent(EventType ev);
+void clearEvent(EventType ev);
+void toogleEvent(EventType ev);
+void setTimer (TimerType timer, int time, EventType ev);
+void startTimer (TimerType timer);
+void cancelTimer (TimerType timer);
+task timertask();
+
+int event = 0;
+
+void setEvent(EventType ev) {
+  event |= ev;
+}
+
+void clearEvent(EventType ev) {
+  event &= ~ev;
+}
+
+void toogleEvent(EventType ev) {
+  event ^= ev;
+}
+
+void setTimer (TimerType timer, int time, EventType ev) {
+  static bool lauftnochnicht = true;
+  if (lauftnochnicht) {
+    for (int i = 0; i < ANZAHLTIMER; ++i) {
+      timer.event = 0;
+      timer.lauft = false;
+      timer.zeit = 0;
+      timer.wannFertig = 0;
+    }
+  
+    lauftnochnicht = false;
+    StartTask(timertask);
+  }
+  timer.event = ev;
+  timer.lauft = false;
+  timer.zeit = time;
+  timer.wannFertig = 0;
+
+}
+
+void startTimer (TimerType timer) {
+  timer.wannFertig = CurrentTick() + timer.zeit;
+  timer.lauft = true;
+}
+
+void cancelTimer (TimerType timer) {
+  timer.lauft = false;
+  timer.wannFertig = 0;
+}
+
+
+task timertask() {
+  int i;
+  long time;
+  while(1) {
+    time = CurrentTick();
+    for (i = 0; i < ANZAHLTIMER; ++i) {
+      if ((timerArray[i].lauft) && (time > timerArray[i].wannFertig)) {
+        setEvent(timerArray[i].event);
+        cancelTimer(timerArray[i]);
+      }
+    }
+    Wait(10);
+  }
+}
+

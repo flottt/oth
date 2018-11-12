@@ -1,0 +1,73 @@
+#include "Events.nxc"
+#define richtungVorwaerts EV01
+#define sensorDriveClicked EV02
+#define sensorWechselClicked EV03
+
+void displayRichtung();
+task sensorcheck1();
+task sensorcheck2();
+task exe();
+
+void displayRichtung() {
+  if (eventIsPresent(richtungVorwaerts)) {
+    TextOut(0, LCD_LINE2, "Vorwaerts     ");
+  } else {
+    TextOut(0, LCD_LINE2, "Rueckwaerts     ");
+  }
+}
+
+task sensorcheck1() {
+  int oldstate = 0;
+  while(1) {
+    if (oldstate != SENSOR_1) {
+      oldstate = SENSOR_1;
+      if (oldstate == 1) setEvent(sensorWechselClicked);
+    }
+    Wait(100);
+  }
+}
+
+task sensorcheck2() {
+  int oldstate = 0;
+  while(1) {
+    if (oldstate != SENSOR_4) {
+      oldstate = SENSOR_4;
+      if (oldstate == 1) setEvent(sensorDriveClicked);
+    }
+    Wait(100);
+  }
+}
+
+task exe() {
+  while(1) {
+    if (eventIsPresent(sensorDriveClicked)) {
+      if (eventIsPresent(richtungVorwaerts)) {
+        OnFwd(OUT_AC, 35);
+      } else {
+        OnRev(OUT_AC, 35);
+      }
+      Wait(1000);
+      Off(OUT_AC);
+      clearEvent(sensorDriveClicked);
+    }
+    if (eventIsPresent(sensorWechselClicked)) {
+      toogleEvent(richtungVorwaerts);
+      displayRichtung();
+      Wait(25);
+      clearEvent(sensorWechselClicked);
+    }
+    Wait(200);
+  }
+}
+
+task main() {
+  SetSensor (IN_1, SENSOR_TOUCH);
+  SetSensor (IN_4, SENSOR_TOUCH);
+  StartTask(sensorcheck1);
+  StartTask(sensorcheck2);
+  StartTask(exe);
+  setEvent(richtungVorwaerts);
+  displayRichtung();
+}
+
+

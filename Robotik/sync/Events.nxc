@@ -1,0 +1,126 @@
+#define ANZAHLTIMER 5
+#define EV01   0x0001
+#define EV02   0x0002
+#define EV03   0x0004
+#define EV04   0x0008
+#define EV05   0x0010
+#define EV06   0x0020
+#define EV07   0x0040
+#define EV08   0x0080
+#define EV09   0x0100
+#define EV10   0x0200
+#define EV11   0x0400
+#define EV12   0x0800
+#define EV13   0x1000
+#define EV14   0x2000
+#define EV15   0x4000
+#define EV16   0x8000
+#define EVENT_R EV15
+#define EVENT_L EV16
+#define TIMER1   0
+#define TIMER2   1
+#define TIMER3   2
+#define TIMER4   3
+#define TIMER5   4
+#define eventIsPresent(a) ( event & a )
+
+
+typedef int EventType;
+typedef struct {
+  EventType event;
+  bool lauft;
+  int zeit;
+  long wannFertig;
+} TimerType;
+
+TimerType timerArray[ANZAHLTIMER];
+
+void setEvent(EventType ev);
+void clearEvent(EventType ev);
+void toogleEvent(EventType ev);
+void setTimer (int timerId, int time, EventType ev);
+void startTimer (int timerId);
+void cancelTimer (int timerId);
+task timertask();
+
+long event = 0;
+
+void setEvent(EventType ev) {
+  event |= ev;
+}
+
+void clearEvent(EventType ev) {
+  event &= ~ev;
+}
+
+void toogleEvent(EventType ev) {
+  event ^= ev;
+}
+
+void setTimer (int timerId, int time, EventType ev) {
+  static bool lauftnochnicht = true;
+  if (lauftnochnicht) {
+    for (int i = 0; i < ANZAHLTIMER; ++i) {
+      timerArray[i].event = 0;
+      timerArray[i].lauft = false;
+      timerArray[i].zeit = 0;
+      timerArray[i].wannFertig = 0;
+    }
+  
+    lauftnochnicht = false;
+    StartTask(timertask);
+  }
+  timerArray[timerId].event = ev;
+  timerArray[timerId].lauft = false;
+  timerArray[timerId].zeit = time;
+  timerArray[timerId].wannFertig = 0;
+
+}
+
+void startTimer (int timerId) {
+  //TODO delete
+//  clearEvent(timerArray[timerId].event);
+  timerArray[timerId].wannFertig = CurrentTick() + timerArray[timerId].zeit;
+  timerArray[timerId].lauft = true;
+}
+
+void cancelTimer (int timerId) {
+  timerArray[timerId].lauft = false;
+  timerArray[timerId].wannFertig = 0;
+}
+
+task sensorchecks() {
+  SetSensor(IN_1, SENSOR_TOUCH);
+  SetSensor(IN_4, SENSOR_TOUCH);
+
+  int oldstateR = 0, oldstateL = 0;
+  while(1) {
+    if (oldstateR != SENSOR_1) {
+      oldstateR = SENSOR_1;
+      if (oldstateR) setEvent(EVENT_R);
+    }
+    if (oldstateL != SENSOR_4) {
+      oldstateL = SENSOR_4;
+      if (oldstateL) setEvent(EVENT_L);
+    }
+    Wait(10);
+  }
+}
+
+
+task timertask() {
+  int i;
+  long time;
+  while(1) {
+    time = CurrentTick();
+    for (i = 0; i < ANZAHLTIMER; ++i) {
+      if ((timerArray[i].lauft) && (time > timerArray[i].wannFertig)) {
+        cancelTimer(i);
+//        PlayTone(440,10);
+        setEvent(timerArray[i].event);
+      }
+    }
+    Wait(10);
+  }
+}
+

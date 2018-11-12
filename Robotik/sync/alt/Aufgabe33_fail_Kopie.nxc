@@ -1,0 +1,315 @@
+#include "Events.nxc"
+#define ZEIT_VOLLDREHUNG 5000
+#define MOVE_EIN_FELD 2000
+#define TIMER_EVENT EV14
+#define TIMER_MOVE TIMER1 
+#define TIMER_TURN_180 TIMER2 
+#define TIMER_TURN_90 TIMER3 
+#define TIMER_IDLE TIMER4 
+
+#define JOB_POS 0x00
+#define JOB_MOVE 0x40
+#define JOB_TURN 0x80
+
+#define RIC_L 0x20
+#define RIC_H 0x10
+#define RIC_R 0x08
+
+#define JOB_MASK 0xC0
+#define RICHTUNG_MASK 0x38
+#define RICHTUNG_CHANGE_MASK 0x28
+#define POS_MASK 0x07
+
+//global variables 
+unsigned char zustand = '\0';
+
+//function headers
+void fehler(string s1, string s2); 
+void setzeNeuenZustand(unsigned char neuerZustand); 
+void executeButton(bool rechts);
+void executeTimer(); 
+void fahren(); 
+void schlafen(bool starteTimer = TRUE);
+void drehenLinks(); 
+void drehenRechts(); 
+void drehen180(); 
+void stopAllTimersAndEvents(); 
+void printZustand();
+
+//TODO inline
+void fahren() {
+  OnFwd(OUT_A, 35);
+  OnFwd(OUT_C, 30);
+  startTimer(TIMER_MOVE); 
+}
+void schlafen(bool starteTimer = TRUE) {
+  Off(OUT_AC); 
+  if (starteTimer) {
+    startTimer(TIMER_IDLE);
+  }
+}
+void drehenLinks() {
+    OnFwd(OUT_C, 30); 
+    OnRev(OUT_A, 30); 
+    startTimer(TIMER_TURN_90);
+} 
+void drehenRechts() {
+    OnFwd(OUT_A, 30);
+    OnRev(OUT_C, 30);
+    startTimer(TIMER_TURN_90);
+}
+void drehen180() {
+    OnFwd(OUT_A, 30);
+    OnRev(OUT_C, 30); 
+    startTimer(TIMER_TURN_180); 
+}
+
+void stopAllTimersAndEvents() {
+  cancelTimer(TIMER_MOVE); 
+  cancelTimer(TIMER_TURN_180); 
+  cancelTimer(TIMER_TURN_90);
+  cancelTimer(TIMER_IDLE); 
+  clearEvent(EVENT_R);
+  clearEvent(EVENT_L);
+  clearEvent(TIMER_EVENT);
+}
+
+void fehler(string s1, string s2) {
+  stopAllTimersAndEvents(); 
+  Off(OUT_AC); 
+  
+  TextOut(0, LCD_LINE1, " - Abbruch wegen Fehler -    ");
+  TextOut(0, LCD_LINE2, "                             ");
+  TextOut(0, LCD_LINE3, "                             ");
+  printZustand(); 
+  zustand = 0; 
+}
+
+void printZustand() {
+  string zustandText = "";
+  unsigned char xxx = JOB_MASK & zustand;
+  switch (xxx) {
+
+  case JOB_MOVE: zustandText = "MOVE"; break;
+  case JOB_POS:  zustandText = "POS "; break;
+  case JOB_TURN: zustandText = "TURN"; break;
+
+  default:       zustandText = "??? "; break;
+  }
+
+  zustandText += " ";
+  if (zustand & RIC_L) zustandText += "L"; else zustandText += "-";
+  if (zustand & RIC_H) zustandText += "H"; else zustandText += "-";
+  if (zustand & RIC_R) zustandText += "R"; else zustandText += "-";
+
+  TextOut(0, LCD_LINE4, "STATE: ");
+  TextOut(0, LCD_LINE5, zustandText);
+  int xxxx = zustand & JOB_POS;
+  NumOut(10, LCD_LINE6, xxxx);
+  NumOut(50, LCD_LINE6, zustand);
+}
+
+void setzeNeuenZustand(unsigned char neuerZustand) {
+  unsigned char job = JOB_MASK & neuerZustand,
+           richtung = RICHTUNG_MASK & neuerZustand,
+                pos = POS_MASK & neuerZustand; //TODO delete neuerZustand
+  stopAllTimersAndEvents();
+  
+  if (neuerZustand == zustand) {
+    fehler("doppelte Befehlszuweisung", "ERROR"); 
+    return; 
+  }
+  
+  switch(job) {
+  case JOB_MOVE: 
+    fahren();
+    break;
+  
+  case JOB_POS:
+    schlafen((pos != 0)); 
+    break; 
+  
+  case JOB_TURN: 
+    if (pos == 0 || pos == 4) { //TURN 0HR, 0HL, 4HR, 4HL
+      if (richtung & RIC_L) {
+        drehenRechts(); 
+      } else {
+        drehenLinks(); 
+      }
+    } else { //TURN xH, xL, xR
+      drehen180();       
+    }
+    break; 
+    
+  default:
+    fehler("ungueltiger JOB-Befehl", "ERROR");
+    return; 
+  }
+    
+  zustand = neuerZustand; 
+  printZustand(); 
+}
+
+
+void executeButton(bool rechts) {
+  char job, richtung, pos, neuerZustand; //TODO delete neuerZustand
+  job = JOB_MASK & zustand;
+  richtung = RICHTUNG_MASK & zustand;
+  pos = POS_MASK & zustand;
+
+  switch(job) {
+  case JOB_POS: //POS
+    if (pos == 0) { //START
+      if (rechts) {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_L);
+      
+      } else {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_R);
+        
+      }
+    } else if (rechts && !(richtung & RIC_L)) { 
+        //Roboter schaut in die Richtung, in die er fahren soll. 
+        if (rechts && pos < 7) {
+          ++pos; 
+          setzeNeuenZustand(JOB_MOVE | RIC_R | pos);
+          
+        } else if (!rechts && pos > 1) {
+          --pos;
+          setzeNeuenZustand(JOB_MOVE | RIC_L | pos);
+          
+        }
+    
+    } else {
+        //Roboter schaut in die falsche Richtung. 
+        setzeNeuenZustand(JOB_TURN | richtung | pos);
+    }
+    break;
+  
+  case JOB_MOVE: //MOVE
+    //do nothing
+    
+    break;
+  
+  case JOB_TURN:
+    //do nothing
+    
+    break;
+  }
+
+}
+
+
+void executeTimer() {
+  unsigned char job, richtung, pos, neuerZustand;
+  job = JOB_MASK & zustand;
+  richtung = RICHTUNG_MASK & zustand;
+  pos = POS_MASK & zustand;
+
+  switch(job) {
+  case JOB_POS: 
+    if (pos == 0) { 
+      //do nothing at START
+      
+    } else if (pos == 4) {
+      if (richtung == RIC_R) {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_R | 0x04);
+      } else {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_L | 0x04);
+      }
+      
+    } else if ((pos < 4) == (richtung == RIC_L)) {
+        //ist Links und schaut Links ODER ist Rechts und schaut Rechts
+        setzeNeuenZustand(JOB_TURN | RIC_H | pos);
+        
+    } else {
+        //ist Links und schaut Rechts ODER ist Rechts und schaut Links
+        setzeNeuenZustand(JOB_MOVE | RIC_H | richtung | pos);
+    }
+      
+    break;
+      
+  case JOB_MOVE: 
+    if (richtung & RIC_H) {
+      //Roboter fährt nach hause
+      if (pos == 3) {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_R | 4);
+        
+      } else if (pos == 5) {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_L | 4);
+        
+      } else if (pos < 3) {
+        setzeNeuenZustand(JOB_MOVE | RIC_H | RIC_R | (pos + 1));
+        
+      } else if (pos > 5) {
+        setzeNeuenZustand(JOB_MOVE | RIC_H | RIC_L | (pos - 1)); 
+        
+      } else {
+        fehler("Ungueltiger Zustand: ", "MOVE 4 HOME");
+      
+      }
+      
+    } else if (richtung & RIC_L) {
+      setzeNeuenZustand(JOB_POS | RIC_L | (pos - 1));
+    
+    } else {  // Richtung = R
+      setzeNeuenZustand(JOB_POS | RIC_R | (pos + 1)); 
+      
+    }
+    break;
+    
+  case JOB_TURN: 
+
+    if (richtung & RIC_H) {
+      if (pos == 4) {               //TURN 4HL, 4HR
+        setzeNeuenZustand(JOB_POS); //START
+        
+      } else if (pos == 0) {        //TURN 0HL, 0HR
+        setzeNeuenZustand(JOB_MOVE | (richtung ^ RICHTUNG_MASK) | 4);
+
+      } else {                      //TURN xH
+        setzeNeuenZustand(JOB_MOVE | RIC_H | pos);
+        
+      }
+      
+    } else {                        //TURN xL, xR
+      setzeNeuenZustand(JOB_MOVE | (richtung ^ RICHTUNG_CHANGE_MASK) | pos);
+    
+    }
+    break;
+  }
+}
+
+
+task automat() {
+
+  zustand = '\0';
+  while(1) {
+    if (eventIsPresent(EVENT_R)) {
+      clearEvent(EVENT_R);
+      executeButton(true);
+    
+    } else if (eventIsPresent(EVENT_L)) {
+      clearEvent(EVENT_L);
+      executeButton(false);
+    
+    } else if (eventIsPresent(TIMER_EVENT)) {
+      clearEvent(TIMER_EVENT);
+      executeTimer();
+      
+    } else {
+      //do nothing
+      
+    }
+      Wait(100);
+  }
+
+}
+
+task main() {
+  StartTask(sensorchecks);
+  setTimer(TIMER_MOVE, MOVE_EIN_FELD, TIMER_EVENT); 
+  setTimer(TIMER_TURN_180, ZEIT_VOLLDREHUNG / 2, TIMER_EVENT); 
+  setTimer(TIMER_TURN_90, ZEIT_VOLLDREHUNG / 4, TIMER_EVENT); 
+  StartTask(automat);
+
+}

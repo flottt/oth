@@ -1,0 +1,165 @@
+#include "Events.nxc"
+#define ZEIT_VOLLDREHUNG 5000
+#define MOVE_EIN_FELD 5000
+#define TIMER_EVENT EV14
+
+#define JOB_POS  0x00
+#define JOB_MOVE 0x40
+#define JOB_TURN 0x80
+
+#define RIC_L    0x20
+#define RIC_H    0x10
+#define RIC_R    0x08
+
+
+const char jobMASK = 0xC0, richtungMASK = 0x38, posMASK = 0x7;
+char zustand = '\0';
+
+
+
+void halbeDrehung() {
+  OnFwd(OUT_A, 30);
+  OnRev(OUT_C, 30);
+  Wait(ZEIT_VOLLDREHUNG / 2);
+  Off(OUT_AC);
+}
+
+void viertelDrehungRechts() {
+  OnFwd(OUT_A, 30);
+  OnRev(OUT_C, 30);
+  Wait(ZEIT_VOLLDREHUNG / 4);
+  Off(OUT_AC);
+}
+
+void fahren() {
+  OnFwd(OUT_A, 35);
+  OnFwd(OUT_C, 30);
+  Wait(MOVE_EIN_FELD);
+  Off(OUT_AC);
+}
+
+void setzeNeuenZustand(char neuerZustand) {
+
+
+}
+
+void executeButton(bool rechts) {
+  char job, richtung, pos, neuerZustand;
+  job = jobMASK & zustand;
+  richtung = richtungMASK & zustand;
+  pos = posMASK & zustand;
+
+  switch(job) {
+  case JOB_POS: //POS
+    if (pos == 0) {
+      if (rechts) neuerZustand = 0xB0;
+      else neuerZustand = 0x98;
+      setzeNeuenZustand(neuerZustand);
+    } else {
+      if (richtung == RIC_L) {
+        if (rechts) {  //rechter Button
+          setzeNeuenZustand(JOB_TURN | RIC_L | pos);
+        } else {       //linker Button
+          if (pos == 1) {
+            //do nothing
+          } else {
+            pos--;
+            setzeNeuenZustand(JOB_MOVE | RIC_L | pos);
+          }  //endif pos = 1
+        } //endif rechts
+        
+      } else { //richtung = RIC_R
+        if (rechts) {  //rechter Button
+          if (pos == 7) {
+            //do nothing
+          } else {
+            pos++;
+            setzeNeuenZustand(JOB_MOVE | RIC_R | pos);
+          }
+        
+        } else {       //linker Button
+          setzeNeuenZustand(JOB_TURN | RIC_R | pos);
+        } //endif rechts
+      } //endif richtung
+    } //endif pos = 0
+  break;
+  case JOB_MOVE: //MOVE
+    //do nothing
+  break;
+  case JOB_TURN:
+    //do nothing
+  break;
+  }
+
+}
+
+
+void executeTimer() {
+  char job, richtung, pos, neuerZustand;
+  job = jobMASK & zustand;
+  richtung = richtungMASK & zustand;
+  pos = posMASK & zustand;
+
+  switch(job) {
+  case JOB_POS:
+    if (pos == 0) {
+      //do nothing
+    } else if (pos == 4) {
+      if (richtung == RIC_R) {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_R | 0x04);
+      } else {
+        setzeNeuenZustand(JOB_TURN | RIC_H | RIC_L | 0x04);
+      }
+    } else if ((pos < 4) == (richtung == RIC_L)) {
+        //ist Links und schaut Links ODER ist Rechts und schaut Rechts
+        setzeNeuenZustand(JOB_TURN | RIC_H | pos);
+    } else {
+        //ist Links und schaut Rechts ODER ist Rechts und schaut Links
+        setzeNeuenZustand(JOB_MOVE | RIC_H | richtung | pos);
+    }
+      
+    break;
+      
+  case JOB_MOVE:
+
+    break;
+  case JOB_TURN:
+    
+    break;
+  }
+}
+
+
+task automat() {
+
+  zustand = '\0';
+  while(1) {
+    if (eventIsPresent(EV_ButtonR)) {
+      clearEvent(EV_ButtonR);
+      executeButton(true);
+    
+    } else if (eventIsPresent(EV_ButtonL)) {
+      clearEvent(EV_ButtonL);
+      executeButton(false);
+    
+    } else if (eventIsPresent(TIMER_EVENT)) {
+      clearEvent(TIMER_EVENT);
+      executeTimer();
+    } else {
+      Wait(50);
+    }
+  }
+
+}
+
+task main() {
+  StartTask(sensorchecks);
+
+  StartTask(automat);
+
+
+
+
+
+
+}

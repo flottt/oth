@@ -1,0 +1,220 @@
+body {
+  font-size: 12pt;
+  font-family: Arial;
+  color: #000000;
+}
+
+
+title-left {
+  font-family: Arial; 
+  position: absolute; 
+  left: 20pt;
+  top: 10pt; 
+  height: 30pt;
+  font-size: 18pt;   
+}
+title-right {
+  font-family: Arial; 
+  position: absolute; 
+  right: 20pt;
+  top: 10pt; 
+  height: 30pt;
+  font-size: 18pt;   
+}
+
+
+h2 {
+  font-size: 150%;
+  font-weight: bold;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  margin-top: 50pt; 
+  margin-bottom: 1pt; 
+  margin-left: 1pt; 
+  margin-right: 1pt;
+  padding: 0pt;
+}
+
+h4 {
+  font-size: 125%;
+  font-weight: bold;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  margin-top: 20pt; 
+  margin-bottom: 1pt; 
+  margin-left: 1pt; 
+  margin-right: 1pt;
+  padding: 0pt;
+}
+
+ul {
+  margin-top: 2pt; 
+  margin-bottom: 2pt; 
+  margin-left: 2pt; 
+  margin-right: 2pt;
+  list-style-type: circle;  
+}
+
+del {
+  text-decoration: line-through double; 
+  color: #335500;
+}
+ins {
+  text-decoration: none;
+  color: #005500;
+}
+
+Pumping-Garantie-Wort {
+  font-family: Times New Roman, Arial;
+  
+  margin-top: 0pt; 
+  margin-bottom: 0pt; 
+  margin-left: 0pt; 
+  margin-right: 5pt;
+    
+}
+Lemma-Head {
+  text-decoration: underline;
+  margin-top: 3pt; 
+  margin-bottom: 13pt; 
+  margin-left: 1pt; 
+  margin-right: 5pt;
+}
+Lemma-VSS:hover {
+  color: #330000;
+}
+Lemma-Behauptung:hover {
+  color: #000033;
+}
+
+Grammatik-Links {
+  font-size: 105%;
+  font-weight: bold;
+}
+
+Grammatik-Pfeil {
+  font-size: 150%;
+  font-weight: bold;
+  padding: 1pt;
+}
+
+Grammatik-TS {
+  font-family: MS Sans Serif, Times New Roman, Arial;
+  font-size: 110%;
+  color: #008811;
+  padding: 1pt;
+  padding-right: 3pt;
+}
+
+Grammatik-NTS {
+  font-family: Courier New, Courier, Arial;
+  font-size: 120%;
+  color: #000099;
+  padding: 1pt;
+  padding-right: 2pt;
+}
+
+div#Ableitungsbaum {
+  position: relative; 
+  height: 1550pt;
+}
+
+Baum-Knoten-Gelb {
+  position: absolute;
+  left: 100pt; 
+  top: 100pt;
+  font-size: 14pt; 
+  height: 30pt; 
+  width: 30pt;
+  text-align: center; 
+  line-height: 30pt;
+  border: 1px solid #550000; 
+  background-color: #FFEE88;
+}
+Baum-Knoten-Changed {
+  position: absolute;
+  left: 100pt; 
+  top: 100pt;
+  font-size: 14pt; 
+  height: 30pt; 
+  width: 30pt;
+  text-align: center; 
+  line-height: 30pt;
+  border: 1px solid #550000; 
+  background-color: #FFDDEE;
+}
+
+Baum-Knoten {
+  position: absolute;
+  left: 100pt; 
+  top: 100pt;
+  font-size: 14pt; 
+  height: 30pt; 
+  width: 30pt;
+  text-align: center; 
+  line-height: 30pt;
+  border: 1px solid #000000; 
+  background-color: #FAFBFC;
+}
+
+Baum-Linie-links {
+  position: absolute; 
+  height: 70pt; 
+  width: 70pt;
+  border-left: 1px solid #000000; 
+  -moz-transform: rotate(60deg);  
+  -o-transform: rotate(60deg);  
+  -webkit-transform: rotate(60deg);  
+  -ms-transform: rotate(60deg);  
+   transform: rotate(60deg); 
+}
+
+Baum-Linie-rechts {
+  position: absolute; 
+  height: 70pt; 
+  width: 70pt;
+  border-top: 1px solid #000000; 
+  -moz-transform: rotate(30deg);  
+  -o-transform: rotate(30deg);  
+  -webkit-transform: rotate(30deg);  
+  -ms-transform: rotate(30deg);  
+   transform: rotate(30deg); 
+}
+
+Baum-Linie-Senkrecht {
+  position: absolute; 
+  height: 33pt; 
+  width: 5pt;
+  border-left: 1px solid #000000; 
+}
+
+Baum-Linie-links-Changed {
+  position: absolute; 
+  height: 70pt; 
+  width: 70pt;
+  border-left: 1px solid #440000; 
+  -moz-transform: rotate(60deg);  
+  -o-transform: rotate(60deg);  
+  -webkit-transform: rotate(60deg);  
+  -ms-transform: rotate(60deg);  
+   transform: rotate(60deg); 
+}
+
+Baum-Linie-rechts-Changed {
+  position: absolute; 
+  height: 70pt; 
+  width: 70pt;
+  border-top: 1px solid #440000; 
+  -moz-transform: rotate(30deg);  
+  -o-transform: rotate(30deg);  
+  -webkit-transform: rotate(30deg);  
+  -ms-transform: rotate(30deg);  
+   transform: rotate(30deg); 
+}
+
+Baum-Linie-Senkrecht-Changed {
+  position: absolute; 
+  height: 33pt; 
+  width: 5pt;
+  border-left: 1px solid #440000; 
+}

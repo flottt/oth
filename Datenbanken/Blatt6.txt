@@ -1,0 +1,208 @@
+Datenbanken Blatt 6
+
+Aufgabe 6.1.a: Alle Studenten mit Prüfung in Ehtik: 
+
+Pi Studenten.Name (
+  Studenten ⨝ pruefen ⨝ 
+	sigma Vorlesungen.Titel='Ethik' (Vorlesungen)
+)
+
+
+Aufgabe 6.1.b: Prüfungen von Carnap: 
+
+Pi Vorlesungen.Titel, pruefen.Note (
+  Vorlesungen ⨝ pruefen ⨝ 
+	  sigma Studenten.Name='Carnap' (Studenten)
+)
+
+Aufgabe 6.1.c: Profs mit mind. 2 VL 
+
+Professoren ⋉ ( -- left semi join 
+pi v2←VorlNr, PersNr←gelesenVon (Vorlesungen)
+⨝ (v1 <> v2 ∧ PersNr = Prof2)
+pi v1←VorlNr, Prof2←gelesenVon (Vorlesungen)
+)
+
+Studenten ⋉ (
+	pi hoeren.MatrNr, VorlNr←voraussetzen.Vorgaenger (
+		(hoeren) ⨝ hoeren.VorlNr = voraussetzen.Nachfolger (voraussetzen)
+	) ▷ hoeren
+)
+
+Aufgabe 6.1.d: Studenten besser als Jonas
+
+Studenten ⋉ pi p.MatrNr ( -- left semi join
+	rho p (pruefen) 
+		⨝ ( -- WHERE-Bedingungen, eigentlich left semi join, aber mit Bedingungen
+			p.Note <= pruefen.Note 
+			∧ p.VorlNr = pruefen.VorlNr -- and
+			∧ p.MatrNr <> pruefen.MatrNr -- and
+		)  ( 
+	-- Jonas Pruefungsergebnis
+  pruefen ⨝ 
+  sigma Studenten.Name='Jonas' (Studenten) ⨝ 
+	sigma Vorlesungen.Titel='Ethik' (Vorlesungen)
+	)
+)
+
+
+----------------------------------------------------------------------
+Aufgabe 6.2 = Aufgabe 5.4, aber mit Relationenkalkül. 
+
+Aufgabe 6.2.a: VL von Carnap: 
+{ vl.titel | vl in Vorlesungen and h in hoeren and stud in Studenten and stud.name='Carnap' and stud.MatrNr=h.MatrNr and h.VorlNr = vl.VorlNr }
+
+Aufgabe 6.2.b: Assi von Carnaps Profs 
+{assi | assi in Assistenten AND 
+  EXIST vl in Vorlesungen: vl.gelesenVon = assi.Boss AND 
+  EXIST h in hoeren: h.VorlNr = vl.VorlNr AND 
+  EXIST stud in Studenten: stud.Name = 'Carnap' AND stud.MatrNr = h.MatrNr   
+}
+
+
+Aufgabe 6.2.c: Profs, die auch alle Voraussetzungen lesen 
+{prof | prof in Professoren AND 
+  FORALL vlHI in Vorlesungen: vlHI.gelesenVon = prof.persNr =>  
+  FORALL vss in voraussetzen: vlHI.VorlNr = vss.Nachfolger => 
+  FORALL vlLO in Voraussetzungen: vlLO.VorlNr = vss.Vorgaenger => 
+  vlLO.gelesenVon = vlHI.gelesenVon; 
+}
+
+
+Aufgabe 6.2.d: Studenten mit Vorlesungen ohne Voraussetzungen 
+{stud | stud in Studenten AND 
+  EXIST h1 in hoeren 
+  EXIST vss in voraussetzen 
+  FORALL h2 in hoeren: h1.MatrNr = h2.MatrNr => (
+	h1.MatrNr = stud.MatrNr AND 
+	h1.VorlNr = vss.Nachfolger AND 
+	h2.VorlNr <> vss.Vorgaenger
+  )
+}
+
+Studenten ⋉ ( -- left semi join
+  -- die nicht gehoerten vorausgesetzten Vorlesungen
+	pi hoeren.MatrNr, VorlNr←voraussetzen.Vorgaenger (
+	 -- die vorausgesetzten Vorlesungen
+		(hoeren) ⨝ hoeren.VorlNr = voraussetzen.Nachfolger (voraussetzen)
+	) ▷ hoeren -- left anti semi join
+)
+
+
+------------------------------------------------------------------------
+Aufgabe 6.3.a: 
+SELECT * FROM Professoren; 
+
+Aufgabe 6.3.b: 
+SELECT Name FROM Professoren; 
+
+Aufgabe 6.3.c: 
+SELECT Name FROM Professoren WHERE Rang='C3';
+
+
+
+------------------------------------------------------------------------
+Aufgabe 6.4: 
+
+DROP TABLE IF EXISTS bierdepot; 
+CREATE TABLE Bierdepot (
+  Nr INTEGER UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+  Sorte VARCHAR(50) NOT NULL, 
+  Hersteller VARCHAR(50) NOT NULL, 
+  Einheit VARCHAR(20) NOT NULL, 
+  Anzahl INTEGER UNSIGNED NOT NULL, 
+  CONSTRAINT BierdepotUniqueSorteHersteller UNIQUE KEY(Sorte, Hersteller, Einheit)  
+);
+
+INSERT INTO Bierdepot (Nr, Sorte, Hersteller, Einheit, Anzahl) VALUES
+(1, 'Export', 'Schultheiss', 'Kasten', 12),
+(3, 'Roggen', 'Thurn und Taxis', 'Kasten', 10),
+(4, 'Pils', 'Löwenbräu', 'Kasten', 22),
+(8, 'Export', 'Löwenbräu', 'Fass', 6),
+(11, 'Weissbier', 'Paulaner', 'Kasten', 7),
+(16, 'Hell', 'Spaten', '6er Pack', 5),
+(20, 'Hell', 'Spaten', 'Kasten', 12),
+(23, 'Hell', 'EKU', 'Fass', 4),
+(24, 'Starkbier', 'Paulaner', 'Kasten', 4),
+(26, 'Dunkel', 'Kneitinger', 'Kasten', 8),
+(28, 'Märzen', 'Hofbräu', 'Fass', 3),
+(33, 'Pils', 'Jever', '6er Pack', 6),
+(36, 'Alkoholfreies Pils', 'Löwenbräu', '6er Pack', 5),
+(39, 'Weissbier', 'Erdinger', 'Kasten', 9),
+(47, 'Alkoholfreies Pils', 'Clausthaler', 'Kasten', 1);
+
+ALTER TABLE Bierdepot AUTO_INCREMENT = 48; 
+
+Aufgabe 6.4.a: 
+SELECT Sorte, Hersteller FROM Bierdepot WHERE Einheit = 'FASS';
+Die Sorten und Hersteller, die Bierfässer haben. 
+
+SELECT Sorte, Hersteller, Anzahl FROM Bierdepot WHERE Anzahl < 4;
+Die Sorten und Hersteller, die auch Kleinmengen haben. 
+
+SELECT Hersteller FROM Bierdepot WHERE Sorte = 'Pils' AND Einheit = 'Kasten';
+Die Hersteller, die Pils im Kasten haben. 
+
+
+Aufgabe 6.4.b: 
+INSERT INTO Bierdepot VALUES (18, 'Export', 'EKU', '6er Pack', 8);
+Fügt entsprechende Zeile ein. 
+
+DELETE FROM Bierdepot WHERE Typ = 'Kasten' AND Anzahl < 5;
+Löscht Bierkästen mit weniger als 5 Flaschen. 
+
+UPDATE Bierdepot SET Anzahl = Anzahl + 2 WHERE Nr = 28 OR Nr = 47;
+Je 2 Fässer Märzen und 2 Flaschen Clausthaler wurden nachgekauft. 
+
+
+Aufgabe 6.4.c: 
+Ermitteln Sie alle Sorten samt Hersteller, die in 6er-Packs vertrieben werden.
+SELECT Sorte, Hersteller
+FROM Bierdepot
+WHERE Einheit LIKE '6er%';
+
+Ermitteln Sie alle Sorten des Herstellers Löwenbräu, die im Depot vorrätig sind.
+SELECT DISTINCT Sorte 
+FROM Bierdepot
+WHERE Hersteller LIKE 'L%wenbr%' 
+AND Anzahl > 0;
+
+Entfernen Sie alle Sorten des Herstellers Kneitinger.
+DELETE FROM Bierdepot
+WHERE Hersteller='Kneitinger';
+
+Entfernen Sie zehn Kästen Pils des Herstellers Löwenbräu. 
+UPDATE Bierdepot 
+SET Anzahl=(CASE WHEN Anzahl > 10 THEN Anzahl-10 ELSE 0 END) 
+WHERE Hersteller LIKE 'L_wenbr%' 
+AND Sorte='Pils'
+
+Fügen Sie sechs Kästen Weissbier des Herstellers Schneider hinzu (Nummer = 10).
+INSERT INTO bierdepot(hersteller, sorte, anzahl, einheit) VALUES
+('Schneider', 'Weissbier', 10, 'Kasten') 
+ON DUPLICATE KEY UPDATE 
+  anzahl = anzahl + 10
+  
+  
+-- OR --
+INSERT INTO bierdepot(nr, hersteller, sorte, anzahl, einheit) VALUES
+(10, 'Schneider', 'Weissbier', 10, 'Kasten') 
+ON DUPLICATE KEY UPDATE 
+  anzahl = anzahl + 10
+  
+-- OR --
+INSERT INTO bierdepot(hersteller, sorte, anzahl, einheit, nr) 
+SELECT 'Schneider', 'Weissbier', 0, 'Kasten', 10 
+FROM bierdepot
+WHERE NOT EXISTS (
+  SELECT * 
+  FROM bierdepot
+  WHERE hersteller='Schneider' 
+  AND sorte LIKE '_ei%bier'
+) LIMIT 1;
+
+UPDATE bierdepot 
+SET anzahl = anzahl + 10 
+WHERE hersteller = 'Schneider' 
+AND sorte LIKE '_ei%bier';
+

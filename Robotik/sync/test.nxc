@@ -1,0 +1,15 @@
+#define JOB 0x80
+task main() {
+  string text = "rrr";
+  text += "sss";
+  TextOut(0, LCD_LINE1, text);
+  int i = 1, j = 2;
+  
+  NumOut(0, LCD_LINE3, (1 | 2 | 4));
+  if (i == JOB || j == 2) {
+  
+  TextOut(0, LCD_LINE2, "sdfsdf");
+  }
+  
+  while(1);
+}

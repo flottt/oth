@@ -1,0 +1,342 @@
+#include "Events.nxc"
+#define TIMER_IDLE TIMER4
+#define TIMER_EVENT EV14
+#define MOVE_EIN_FELD 2000
+#define ZEIT_VOLLDREHUNG 4000
+
+#define POS1L 1
+#define POS2L 2
+#define POS3L 3
+#define POS4L 4
+#define POS5L 5
+#define POS6L 6
+#define POS2R 7
+#define POS3R 8
+#define POS4R 9
+#define POS5R 10
+#define POS6R 11
+#define POS7R 12
+#define START 0
+
+void clearAllEvents();
+void fahren();
+void drehenLinks();
+void drehenRechts();
+void drehen180();
+
+int zustand;
+
+void fahren() {
+  OnFwd(OUT_A, 35);
+  OnFwd(OUT_C, 30);
+  Wait(MOVE_EIN_FELD);
+  Off(OUT_AC);
+}
+
+void drehenLinks() {
+    OnFwd(OUT_C, 30);
+    OnRev(OUT_A, 30);
+    Wait(ZEIT_VOLLDREHUNG / 4);
+    Off(OUT_AC);
+}
+
+void drehenRechts() {
+    OnFwd(OUT_A, 30);
+    OnRev(OUT_C, 30);
+    Wait(ZEIT_VOLLDREHUNG / 4);
+    Off(OUT_AC);
+}
+
+void drehen180() {
+    OnFwd(OUT_A, 30);
+    OnRev(OUT_C, 30);
+    Wait(ZEIT_VOLLDREHUNG / 2);
+    Off(OUT_AC);
+}
+
+void clearAllEvents() {
+    clearEvent(EVENT_R);
+    clearEvent(EVENT_L);
+    clearEvent(TIMER_EVENT);
+    cancelTimer(TIMER_IDLE);
+}
+
+task automat() {
+  clearAllEvents();
+  zustand = START;
+  while(1) {
+    if (eventIsPresent(TIMER_EVENT)) {
+      PlayTone(400, 200);
+    }
+  
+    switch(zustand) {
+      case START:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehenLinks();
+          fahren();
+          zustand = POS3L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehenRechts();
+          fahren();
+          zustand = POS5R;
+          startTimer(TIMER_IDLE);
+        }
+      break;
+
+      case POS1L:
+        if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS2R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          fahren();
+          fahren();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS2L:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS1L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS3R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          fahren();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS3L:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS2L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS4R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS4L:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS3L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS5R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+
+      case POS5L:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS4L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS6R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          fahren();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+        
+      case POS6L:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS5L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS7R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          fahren();
+          fahren();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+        
+      case POS2R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS1L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS3R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          fahren();
+          fahren();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS3R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS2L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS4R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          fahren();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS4R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS3L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS5R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehenLinks();
+          zustand = START;
+        }
+        break;
+
+      case POS5R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS4L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS6R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+
+      case POS6R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS5L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          fahren();
+          zustand = POS7R;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          fahren();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+
+      case POS7R:
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          zustand = POS6L;
+          startTimer(TIMER_IDLE);
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          drehen180();
+          fahren();
+          fahren();
+          drehenRechts();
+          zustand = START;
+        }
+        break;
+
+    }
+    
+    Wait(100);
+  }
+
+}
+
+
+task main() {
+  StartTask(sensorchecks);
+  setTimer(TIMER_IDLE, 5000 , TIMER_EVENT);
+  StartTask(automat);
+}

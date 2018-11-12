@@ -1,0 +1,34 @@
+#define MILLISECONDS 5000
+task main() {
+  SetSensor(IN_1, SENSOR_TOUCH);
+
+  while(SENSOR_1 != 0) {
+    Wait(250);
+  }
+  while(SENSOR_1 != 1) {
+    Wait(250);
+  }
+
+  long zeit0 = CurrentTick();
+  long zeit = CurrentTick();
+  int oldstate = 0;
+  int zaehler = 0;
+  while(zeit - zeit0 < MILLISECONDS) {
+    zeit = CurrentTick();
+
+    if (SENSOR_1 != oldstate) {
+      oldstate = SENSOR_1;
+      ++zaehler;
+    }
+    NumOut(0, LCD_LINE1, zeit - zeit0);
+    Wait(10);
+  }
+  
+  float frequenz  = zaehler * 500 / MILLISECONDS;
+  TextOut(0, LCD_LINE2, "        ");
+  NumOut(0, LCD_LINE2, frequenz);
+  while(1) {
+
+  }
+  
+}

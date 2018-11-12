@@ -1,0 +1,28 @@
+597 * 597 = 356409
+0x255 * 0x255 = 0x57039
+0x00 00 00 00  00 05 70 39  
+
+
+65535 * 65535 = -131071
+0xffff * 0xffff = 0xfffe0001
+0x00 00 00 00  ff fe 00 01  
+
+
+65538 * 65535 = 65534
+0x10002 * 0xffff = 0xfffe
+0x00 00 00 01  00 00 ff fe  
+
+
+11259375 * 11259375 = -1024285407
+0xabcdef * 0xabcdef = 0xc2f2a521
+0x00 00 73 4c  c2 f2 a5 21  
+
+
+11259375 * -1 = -11259375
+0xabcdef * 0xffffffff = 0xff543211
+0x00 ab cd ee  ff 54 32 11  
+
+
+-1 * -1 = 1 //FFFF FFFF quad:
+0xffffffff * 0xffffffff = 0x1
+0xff ff ff fe  00 00 00 01  

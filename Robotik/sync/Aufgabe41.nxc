@@ -1,0 +1,56 @@
+long prev_tick = 0;
+long prev_deg = 0;
+#define DEG_TO_RPM 166.6667 // converts degrees per millisecond to RPM
+
+float rpm_msg() {
+   long aktTick = CurrentTick();
+   long aktRotation = MotorRotationCount(OUT_A);
+   float dt = aktTick - prev_tick, deg = aktRotation - prev_deg;
+   float rpm = deg * DEG_TO_RPM / dt;
+   prev_deg = aktRotation;
+   prev_tick = aktTick;
+   return rpm;
+}
+
+
+task main() {
+  byte filePointer = NULL;
+  short ioReturn = 0;
+  
+  switch (CreateFile("blabla.txt", 1024, filePointer)) {
+  case LDR_FILEEXISTS:
+    TextOut(0, LCD_LINE2, "error: already exist");
+    break;
+    
+  case LDR_SUCCESS:
+    TextOut(0, LCD_LINE2, "passt");
+    break;
+
+  case LDR_FILEISFULL:
+    TextOut(0, LCD_LINE2, "error: full");
+    break;
+    
+  default:
+    TextOut(0, LCD_LINE2, "error: ???");
+  }
+  
+  WriteLnString(filePointer, "1234567890qwertzuiopasdfghjklyxcvbnm", ioReturn);
+  CloseFile(filePointer);
+  
+  TextOut(0, LCD_LINE1, "done");
+
+
+  while(1) {
+  
+  }
+/*
+  int x = 0;
+  OnFwd(OUT_A, 60);
+  while(1) {
+    x = MotorRotationCount(OUT_A);
+    NumOut(0, LCD_LINE1, x);
+    Wait(20);
+  
+  }*/
+}
+   

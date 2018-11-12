@@ -1,0 +1,110 @@
+5.3.a (tested: +)
+SELECT assi.Name as Name, assi.Fachgebiet as Fachgebiet 
+FROM Assistenten assi
+JOIN Professoren prof
+ON assi.Boss = prof.PersNr 
+WHERE prof.Rang = 'C3'; 
+
+5.3.b (tested: fail: no ANTISEMIJOIN)
+SELECT vl.VorlNr as Vorlesungsnummer, vl.Titel as Titel 
+FROM Vorlesungen vl 
+LEFT ANTISEMIJOIN hören h
+ON vl.VorlNr = h.VorlNr; 
+
+5.3.b (tested: +)
+SELECT vl.VorlNr as Vorlesungsnummer, vl.Titel as Titel 
+FROM Vorlesungen vl 
+WHERE vl.VorlNr NOT IN (
+ SELECT VorlNr FROM hören
+)
+
+5.3.c (tested: fail - wrong result)
+SELECT vl.VorlNr as Vorlesungsnummer, vl.Titel as Titel 
+FROM Vorlesungen vl 
+GROUP BY sws 
+HAVING vl.sws = max(sws);
+
+5.3.c (tested: +)
+SELECT vl.VorlNr as Vorlesungsnummer, vl.Titel as Titel 
+FROM Vorlesungen vl 
+WHERE vl.sws = (
+  SELECT MAX(vlm.sws) 
+  FROM Vorlesungen vlm
+);
+
+5.3.d (tested: +)
+SELECT * 
+FROM Professoren
+NATURAL JOIN (
+  SELECT gelesenVon as PersNr  
+  FROM Vorlesungen vl 
+  GROUP BY gelesenVon
+  HAVING COUNT(*) >= 2
+) AS iQry; 
+
+5.4.a (tested: +)
+SELECT vl.Titel as Vorlesungstitel 
+FROM Studenten st
+JOIN hören h
+ON st.MatrNr = h.MatrNr
+JOIN Vorlesungen vl
+ON vl.VorlNr = h.VorlNr 
+WHERE st.Name = "Carnap"; 
+
+5.4.b (tested: +)
+SELECT assi.Name as Assistent, assi.Fachgebiet 
+FROM assistenten assi 
+NATURAL JOIN (
+  SELECT vl.gelesenVon as Boss 
+	FROM vorlesungen vl
+	NATURAL JOIN hören h
+	NATURAL JOIN studenten stud
+	WHERE stud.Name = "Carnap"
+
+  UNION 
+
+  SELECT pr.PersNr as Boss
+	FROM prüfen pr
+	NATURAL JOIN studenten studP
+	WHERE studP.Name = "Carnap"
+) AS Proffis
+
+5.4.c (tested: +)
+SELECT * 
+FROM professoren profs 
+WHERE profs.PersNr NOT IN (
+  
+  /* Vorlesungen, die Vorlesungen anderer Professoren voraussetzen */
+  SELECT vl.gelesenVon
+  FROM vorlesungen vl 
+  WHERE 0 < (
+    
+    /* Anzahl Voraussetzungen an Vorlesungen anderer Professoren */
+    SELECT count(*)
+    FROM vorlesungen vl_req
+    JOIN voraussetzen vss_req 
+    ON vl_req.VorlNr = vss_req.Vorgaenger
+    
+    WHERE vl_req.gelesenVon <> vl.gelesenVon
+    AND vss_req.Nachfolger = vl.VorlNr 
+  )
+)
+/* if profs without work should be skipped: */ 
+AND profs.PersNr IN (
+  SELECT vljob.gelesenVon 
+  FROM vorlesungen vljob
+)
+
+5.4.d (tested: +)
+SELECT DISTINCT stud.Name AS Student 
+FROM studenten stud
+NATURAL JOIN hören h
+JOIN voraussetzen vss
+ON h.VorlNr = vss.Nachfolger
+WHERE vss.Vorgaenger NOT IN (
+	SELECT pr.VorlNr
+  FROM prüfen pr
+  WHERE pr.MatrNr = stud.MatrNr 
+  AND pr.NOTE IS NOT NULL 
+  AND pr.NOTE <= 4    
+)
