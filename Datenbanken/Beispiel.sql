@@ -209,6 +209,16 @@ INSERT INTO pruefen (MatrNr, VorlNr, PersNr, Note) VALUES
 (10050, 1002, 1001, NULL), 
 (10050, 1001, 1001, NULL); 
 
+/* Aufgabe 7.1.d: Studenten besser als Jonas */
+/* zum Testen Beispiele mit Ethikpruefungen */
+INSERT INTO pruefen (MatrNr, VorlNr, PersNr, Note) VALUES 
+(10020, 5041, 1001, 1.3), 
+(10030, 5041, 1001, 3.0), 
+(10040, 5041, 1001, NULL), 
+(10050, 5041, 1001, 2.0), 
+(28106, 5041, 2125, 5.0) 
+ON DUPLICATE KEY UPDATE Note=Note; 
+
 DROP TABLE IF EXISTS bierdepot; 
 CREATE TABLE Bierdepot (
   Nr INTEGER UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, 
