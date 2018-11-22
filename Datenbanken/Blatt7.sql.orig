@@ -1,4 +1,4 @@
-/* Aufgabe 7.1.a: Studenten mit Ethikpr�fung */
+/* Aufgabe 7.1.a: Studenten mit Ethikprüfung */
 SELECT s.Name AS Student 
 FROM vorlesungen v 
 NATURAL JOIN pruefen p 
@@ -63,7 +63,7 @@ AND p.Note IS NOT NULL;
 SELECT vl.Titel AS Vorlesung, AVG(p.Note) AS Durchschnittsnote 
 FROM vorlesungen vl 
 LEFT OUTER JOIN pruefen p ON vl.VorlNr = p.VorlNr 
-GROUP BY vl.VorlNr, vl.Titel 
+GROUP BY vl.VorlNr 
 ORDER BY Vorlesung ASC; 
 
 
@@ -79,8 +79,7 @@ HAVING COUNT(*) >= 2;
 SELECT AVG(p.Note) AS Durchschnittsnote 
 FROM professoren prof 
 JOIN vorlesungen vl ON prof.PersNr = vl.gelesenVon 
-JOIN pruefen p ON p.PersNr = prof.PersNr  
-WHERE prof.Name = 'Kant'; 
+JOIN pruefen p ON p.PersNr = prof.PersNr; 
 
 
 
@@ -123,10 +122,10 @@ WHERE p.Note IS NULL
 OR p.Note > 4; 
 
 
-/* Aufgabe 7.5.a: Studienpruefungsordnungen */
+/* Aufgabe 7.5.a: Studienprüfungsordnungen */
 /* eventuell hatte die Spalte Semester NULL-Werte. 
  * Diese wurden in keiner der beiden Updates erfasst. 
- * Loesungsvorschlaege: 
+ * Lösungsvorschläge: 
  * - default-Value beim ALTER TABLE setzen. 
  * - Spalte Semester als NOT NULL setzen. 
  * - kein WHERE im Update, sondern SET SPO = (CASE WHEN Semester >= 5 THEN 'alteSPO' ELSE 'neueSPO' END); */
@@ -136,11 +135,3 @@ SELECT stud.SPO AS spo, COUNT(stud.SPO) / gesamt.gesamt AS anteil
 FROM studentenneu stud 
 CROSS JOIN (SELECT COUNT(SPO) AS gesamt FROM studentenneu) AS gesamt 
 GROUP BY stud.SPO
- /* Aufgabe 7.5.c: Statistik */ 
-SELECT v.VorlNr, v.titel 
-FROM Vorlesungen v, hoeren h, Studentenneu s 
-WHERE v.VorlNr = h.VorlNr 
-AND h.MatrNr = s.MatrNr 
-AND s.SPO = 'neueSPO'
-GROUP BY v.VorlNr, v.Titel
-HAVING count(*) * 2 >= (SELECT count(*) FROM Studentenneu WHERE SPO = 'neueSPO');
