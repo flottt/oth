@@ -1,0 +1,83 @@
+#include "pcf8574llb.nxc"
+#include "alt/Events.nxc"
+#define TIMER_EVENT EV01
+#define LAMPE EV02
+
+task runTask() {
+  while(1) {
+    Wait(100);
+    if (eventIsPresent(TIMER_EVENT)) {
+      clearEvent(TIMER_EVENT);
+      startTimer(TIMER1);
+      toogleEvent(LAMPE);
+      if (eventIsPresent(LAMPE)) {
+        DeletePort(1);
+      } else {
+        //WritePort(1);
+      }
+    }
+    if (eventIsPresent(EVENT_R)) {
+      clearEvent(EVENT_R);
+      //Frequenz erhoehen
+      timerArray[TIMER1].zeit *= 0.8;
+      if (timerArray[TIMER1].zeit < 2) timerArray[TIMER1].zeit = 2;
+      
+    } else if (eventIsPresent(EVENT_L)) {
+      clearEvent(EVENT_L);
+      //Frequenz erniedrigen
+      timerArray[TIMER1].zeit *= 1.25;
+      if (timerArray[TIMER1].zeit < 5) timerArray[TIMER1].zeit = 5;
+      if (timerArray[TIMER1].zeit > 2000) timerArray[TIMER1].zeit = 2000;
+
+      
+    }
+
+  }
+}
+
+task sensorPruef() {
+  SetSensor(IN_3, SENSOR_TOUCH);
+  SetSensor(IN_4, SENSOR_TOUCH);
+
+  int oldstateR = 0, oldstateL = 0;
+  while(1) {
+    if (oldstateR != SENSOR_3) {
+      oldstateR = SENSOR_3;
+      if (oldstateR) setEvent(EVENT_R);
+    }
+    if (oldstateL != SENSOR_4) {
+      oldstateL = SENSOR_4;
+      if (oldstateL) setEvent(EVENT_L);
+    }
+    Wait(10);
+  }
+}
+
+task main() {
+  SetSensorLowspeed(IN_1);
+/*  while(1) {
+    WritePorts(255);
+    Wait(500);
+    WritePorts(0);
+    Wait(500);
+  }
+*/
+  
+  setTimer(TIMER1, 1000, TIMER_EVENT);
+  clearEvent(LAMPE);
+  StartTask(runTask);
+  StartTask(sensorPruef);
+  startTimer(TIMER1);
+}
+void backup() {
+
+  Wait(1000);
+  WritePorts(100);
+  Wait(1000);
+  NumOut(0, LCD_LINE1, ReadPorts());
+  Wait(1000);
+  WritePorts(0);
+  while(1){
+    Wait(200);
+  }WritePorts(0);
+}

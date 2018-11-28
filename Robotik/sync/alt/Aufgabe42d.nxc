@@ -1,0 +1,59 @@
+long prev_tick = 0;
+long prev_deg = 0;
+#define DEG_TO_RPM 166.6667 // converts degrees per millisecond to RPM
+const int WARTEZEIT = 200;
+
+#define REGLER_Proporti 7
+//bleibt allein stehen
+#define REGLER_Differen 1
+//Integral-Regler ueberreguliert
+#define REGLER_Integral 1
+
+float calcRpm() {
+   long aktTick = CurrentTick();
+   long aktRotation = MotorRotationCount(OUT_A);
+   float dt = aktTick - prev_tick, deg = aktRotation - prev_deg;
+   float rpm = deg * DEG_TO_RPM / dt;
+   prev_deg = aktRotation;
+   prev_tick = aktTick;
+   return rpm;
+}
+
+task main() {
+  int speed = 0;
+  float rpm = 0, diffRpm = 0, diffRpmPrev = 0, diffdiff = 0, diffAdd = 0;
+  const float sollRpm = 35;
+  speed = 35;
+  prev_tick = CurrentTick();
+  prev_deg = 0;
+  while(1) {
+    NumOut(0, LCD_LINE2, speed);
+    NumOut(0, LCD_LINE3, rpm);
+    OnFwd(OUT_A, speed);
+    Wait(WARTEZEIT);
+
+
+    //sichere Geschwindigkeit
+    diffRpmPrev = diffRpm;
+
+    //berechne Geschwindigkeit als Umdrehungen pro Minute
+    rpm = calcRpm();
+
+    //berechne Soll-Ist-Differenz
+    diffRpm = sollRpm - rpm;
+    
+    //berechne Ableitung der Geschwindigkeit
+    diffdiff = diffRpm - diffRpmPrev;
+    
+    //berechne Integral der Geschwindigkeit
+    diffAdd += diffRpm;
+
+    //passe Geschwindigkeit mit den Reglern an
+    speed += diffRpm * REGLER_Proporti * 0.1
+           + diffdiff * REGLER_Differen * 100 / WARTEZEIT
+           + diffAdd * WARTEZEIT * 0.0001 * REGLER_Integral;
+    if (speed > 100) speed = 100;
+    if (speed < 0) speed = 0;
+
+  }
+}

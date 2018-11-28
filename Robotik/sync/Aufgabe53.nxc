@@ -1,0 +1,156 @@
+#include "pcf8574llb.nxc"
+#include "alt/Events.nxc"
+#define TIMER_EVENT 0x0001
+#define TIMER_NEBENSTRASSE 1
+#define LAMPE 0x0002
+
+#define STATE_NACHT 1
+#define STATE_HAUPT 2
+#define STATE_NEBEN 3
+
+
+#define AMPEL_HAUPT_ROT  0xFB // = ~0x04
+#define AMPEL_HAUPT_GELB 0xF7 // = ~0x08
+#define AMPEL_HAUPT_GRUN 0xEF // = ~0x10
+#define AMPEL_NEBEN_ROT  0xDF // = ~0x20
+#define AMPEL_NEBEN_GELB 0xBF // = ~0x40
+#define AMPEL_NEBEN_GRUN 0x7F // = ~0x80
+
+int state = STATE_HAUPT;
+
+
+
+inline void clearAllEvents() {
+  cancelTimer(TIMER_NEBENSTRASSE);
+  event = 0;
+//  clearEvent(EVENT_L | EVENT_R | TIMER_EVENT);
+}
+
+inline void setStateHaupt() {
+  TextOut(0, LCD_LINE5, "setHaupt    ");
+  state = 0;
+  WritePorts(0xFF & AMPEL_HAUPT_GRUN & AMPEL_NEBEN_ROT);
+  Wait(1000);
+  state = STATE_HAUPT;
+}
+
+inline void setStateNacht() {
+  TextOut(0, LCD_LINE5, "setNacht    ");
+  state = 0;
+  WritePorts(0xFF);
+  Wait(1000);
+  state = STATE_NACHT;
+}
+
+inline void changeToStateRot() {
+  TextOut(0, LCD_LINE5, "changeToRot ");
+  state = 0;
+  WritePorts(0xFF & AMPEL_HAUPT_GELB & AMPEL_NEBEN_ROT);
+  Wait(1000);
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_ROT);
+  Wait(250);
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_ROT & AMPEL_NEBEN_GELB);
+  Wait(2000);
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_GRUN);
+  startTimer(TIMER_NEBENSTRASSE);
+  state = STATE_NEBEN;
+  TextOut(0, LCD_LINE5, "jetztRot    ");
+}
+
+inline void changeToStateGrun() {
+  TextOut(0, LCD_LINE5, "changeToGrun");
+  state = 0;
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_GELB);
+  Wait(1000);
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_ROT);
+  Wait(250);
+  WritePorts(0xFF & AMPEL_HAUPT_ROT & AMPEL_NEBEN_ROT & AMPEL_HAUPT_GELB);
+  Wait(2000);
+  WritePorts(0xFF & AMPEL_HAUPT_GRUN & AMPEL_NEBEN_ROT);
+  state = STATE_HAUPT;
+  TextOut(0, LCD_LINE5, "jetztGrun   ");
+}
+
+task runTask() {
+  while(1) {
+    NumOut(0, LCD_LINE3, state);
+
+    switch(state) {
+      case STATE_NACHT:
+        if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          setStateHaupt();
+        }
+
+      break;
+      case STATE_HAUPT:
+
+        if (eventIsPresent(EVENT_L)) {
+
+          clearAllEvents();
+          changeToStateRot();
+
+        } else if (eventIsPresent(EVENT_R)) {
+
+          clearAllEvents();
+          setStateNacht();
+        
+        }
+
+      break;
+      case STATE_NEBEN:
+
+
+        if (eventIsPresent(EVENT_L)) {
+          clearAllEvents();
+          startTimer(TIMER_NEBENSTRASSE);
+
+        } else if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          setStateNacht();
+
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          changeToStateGrun();
+        
+        }
+
+      
+      break;
+      default:
+        TextOut(0,LCD_LINE2, "Illegal State ERROR ");
+        while(1) {Wait(10);}
+    }
+//    PlayTone(440, 10);
+    Wait(100);
+  }
+}
+
+/** aktiviert die Taster */
+task sensorPruef() {
+  SetSensor(IN_3, SENSOR_TOUCH);
+  SetSensor(IN_4, SENSOR_TOUCH);
+
+  int oldstateR = 0, oldstateL = 0;
+  while(1) {
+    if (oldstateR != SENSOR_4) {
+      oldstateR = SENSOR_4;
+      if (oldstateR) setEvent(EVENT_R);
+    }
+    if (oldstateL != SENSOR_3) {
+      oldstateL = SENSOR_3;
+      if (oldstateL) setEvent(EVENT_L);
+    }
+    Wait(10);
+  }
+}
+
+task main() {
+  SetSensorLowspeed(IN_1);
+  setStateHaupt();
+  setTimer(TIMER_NEBENSTRASSE, 10000, TIMER_EVENT);
+  clearEvent(LAMPE);
+  StartTask(runTask);
+  StartTask(sensorPruef);
+}
+
