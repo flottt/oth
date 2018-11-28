@@ -1,11 +1,11 @@
-/* Aufgabe 8.1.a: Vorlesungstitel Kant */
+﻿/* Aufgabe 8.1.a: Vorlesungstitel Kant */
 SELECT vl.Titel 
 FROM vorlesungen vl
 JOIN professoren prof ON vl.gelesenVon = prof.PersNr 
 WHERE prof.Name = "Kant";  
 
 /* Aufgabe 8.1.b: Kant's Studenten */
-SELECT DISTINCT stud.Name
+SELECT DISTINCT stud.Name AS Student 
 FROM studenten stud 
 NATURAL JOIN hoeren h 
 NATURAL JOIN vorlesungen vl 
@@ -13,14 +13,14 @@ JOIN professoren prof ON vl.gelesenVon = prof.PersNr
 WHERE prof.Name = "Kant"; 
 
 /* Aufgabe 8.1.c: Kant's gepruefte Studenten */
-SELECT stud.Name, pr.Note 
+SELECT stud.Name AS Student, pr.Note AS Note 
 FROM studenten stud 
 NATURAL JOIN pruefen pr 
 JOIN professoren prof ON pr.PersNr = prof.PersNr 
 WHERE prof.Name = "Kant"; 
 
 /* Aufgabe 8.1.d: Ueber Kant gepruefte Studenten */
-SELECT stud.Name, pr.Note 
+SELECT stud.Name AS Student, pr.Note AS Note 
 FROM studenten stud 
 JOIN pruefen pr ON stud.MatrNr = pr.MatrNr 
 JOIN hoeren h ON h.MatrNr = stud.MatrNr 
@@ -29,21 +29,22 @@ JOIN professoren prof ON vl.gelesenVon = prof.PersNr
 WHERE prof.Name = "Kant";
 
 /* Aufgabe 8.2.a: Studentenarbeit */
-SELECT stud.Name AS Student, SUM(vl.SWS) as Wochenarbeitsstunden
+SELECT stud.Name AS Student, COUNT(*), SUM(vl.SWS) as Wochenarbeitsstunden
 FROM studenten stud 
 JOIN hoeren h ON h.MatrNr = stud.MatrNr 
 JOIN vorlesungen vl ON vl.VorlNr = h.VorlNr 
 GROUP BY stud.MatrNr, stud.Name;  
 
 /* Aufgabe 8.2.c.a: Studentenarbeit */
-SELECT stud.Name AS Student, IFNULL(SUM(vl.SWS),0) as Wochenarbeitsstunden
+SELECT stud.Name AS Student, COUNT(*), IFNULL(SUM(vl.SWS),0) as Wochenarbeitsstunden
 FROM studenten stud 
 LEFT OUTER JOIN hoeren h ON h.MatrNr = stud.MatrNr 
 LEFT OUTER JOIN vorlesungen vl ON vl.VorlNr = h.VorlNr 
 GROUP BY stud.MatrNr, stud.Name;  
 
 /* Aufgabe 8.2.b: Professorenarbeit */
-SELECT prof.Name as Professor, COUNT(DISTINCT h.MatrNr) FROM professoren prof 
+SELECT prof.Name as Professor, COUNT(DISTINCT h.MatrNr) 
+FROM professoren prof 
 JOIN vorlesungen vl ON vl.gelesenVon = prof.PersNr
 JOIN hoeren h ON h.VorlNr = vl.VorlNr 
 GROUP BY prof.PersNr, prof.Name; 
@@ -116,4 +117,5 @@ JOIN node y2 ON y2.nid = maz.x2
 WHERE y1.color = 'red' 
 GROUP BY y1.nid, y2.nid 
 ORDER BY y1.nid ASC, min_distanz DESC;
+
 

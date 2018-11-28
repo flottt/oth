@@ -1,0 +1,24 @@
+Aufgabe 9.1.a: 
+Die Studenten, die 4-SWS-Vorlesungen von Sokrates hören. 
+
+Aufgabe 9.1.b: 
+Die Vorlesungen, die gar niemand hört. 
+
+Aufgabe 9.1.c: 
+Die Studenten, die sich mind einmal Vorlesungsreferent und Vorlesungsprüfer getrennt haben. 
+
+Aufgabe 9.1.d: 
+Der Professor mit den meisten kumulierten Zuhörern, wobei gleiche Studenten in unterschiedlichen Vorlesungen mehrfach zählen. 
+
+Aufgabe 9.1.e: 
+Studenten, die sich über Vorlesungen prüfen lassen, die sie (hier) gar nicht gehört haben. 
+
+Aufgabe 9.1.f: 
+Studenten, die Vorlesungen hören, für die sie gar nicht die Voraussetzungen hören. 
+
+Augabe 9.2.a
+SELECT prof.Name AS Professor, SUM(vl.SWS) AS Vorlesungszeit
+FROM Professoren prof
+LEFT OUTER JOIN Vorlesungen vl ON prof.PersNr = vl.gelesenVon
+GROUP BY prof.PersNr, prof.Name
+ORDER BY Vorlesungszeit DESC NULLS LAST;
