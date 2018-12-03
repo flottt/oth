@@ -166,6 +166,50 @@ INSERT INTO pruefen (MatrNr, VorlNr, PersNr, Note) VALUES
 CREATE VIEW IF NOT EXISTS hören AS SELECT * FROM hoeren; 
 CREATE VIEW IF NOT EXISTS prüfen AS SELECT * FROM pruefen;  
 
+/* View zum Ansehen in phpmyadmin */
+DROP VIEW IF EXISTS StudentHoert; 
+CREATE VIEW StudentHoert AS 
+SELECT stud.MatrNr AS MatrNr, stud.Name AS Name, GROUP_CONCAT(CONCAT(vl.Titel, " (", prof.Name, ")") ORDER BY vl.Titel ASC SEPARATOR ',\n') AS VorlesungslisteHoeren
+FROM studenten stud 
+LEFT OUTER JOIN hoeren h ON stud.MatrNr = h.MatrNr 
+LEFT OUTER JOIN vorlesungen vl ON h.VorlNr = vl.VorlNr 
+LEFT OUTER JOIN professoren prof ON prof.PersNr = vl.gelesenVon 
+GROUP BY stud.MatrNr, stud.Name; 
+
+DROP VIEW IF EXISTS ProfessorLiest; 
+CREATE VIEW ProfessorLiest AS 
+SELECT 
+/* Attribute aus der Tabelle Professor direkt: */
+prof.PersNr, prof.Name AS Name, prof.Rang as Rang, prof.Raum AS Raum, 
+/* Vorlesungsliste: */
+  (
+    SELECT GROUP_CONCAT(CONCAT(vorles.Titel, " (", (
+        /* Liste der Vorlesungsteilnehmer */
+        SELECT GROUP_CONCAT(stuud.Name ORDER BY stuud.Name ASC SEPARATOR ', ')
+        FROM hoeren h 
+        JOIN studenten stuud ON h.MatrNr = stuud.MatrNr 
+        WHERE h.VorlNr = vorles.VorlNr
+        
+        ) 
+     ,")") ORDER BY vorles.Titel ASC SEPARATOR ',\n') 
+    FROM vorlesungen vorles
+    WHERE prof.PersNr = vorles.gelesenVon
+    
+  ) AS Vorlesungsliste, 
+/* Pruefungsliste: */  
+  (
+      SELECT GROUP_CONCAT(DISTINCT CONCAT(stud.Name, " (", vlpr.Titel,": ", IFNULL(pr.Note, "--"), ")") ORDER BY stud.Name ASC SEPARATOR ',\n')
+      FROM pruefen pr 
+      JOIN studenten stud ON pr.MatrNr = stud.MatrNr
+      JOIN vorlesungen vlpr ON vlpr.VorlNr = pr.VorlNr
+      WHERE pr.PersNr = prof.PersNr
+      GROUP BY pr.PersNr
+  ) AS Pruefungsliste 
+FROM professoren prof 
+GROUP BY prof.PersNr, prof.Name, prof.Rang, prof.Raum 
+ORDER BY prof.PersNr ASC;
+
+    
 /* Weitere Datensätze, um die Aufgaben auf Blatt 5 korrekt testen zu können. 
  * Professor Einstein hält eine vierteilige Vorlesung "Relativ", 
  * die von den Studenten Zwei- bis Funfstein wenig erfolgreich besucht wird. */
