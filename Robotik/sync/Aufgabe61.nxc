@@ -1,0 +1,15 @@
+int liste[740, 520, 425, 370, 330, 306, 284, 273, 265, 257, 249, 248, 237, 233
+
+
+task messen() {
+  while(1) {
+    NumOut(0, LCD_LINE3, SensorRaw(S2));
+    Wait(200);
+  }
+}
+
+task main() {
+  SetSensorType(S2, SENSOR_TYPE_CUSTOM);
+  StartTask(messen);
+
+}

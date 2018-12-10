@@ -2,9 +2,11 @@
 #include "alt/Events.nxc"
 #define TIMER_EVENT 0x0001
 #define TIMER_NEBENSTRASSE 1
+#define TIMER_BLINK 2
 #define LAMPE 0x0002
 
-#define STATE_NACHT 1
+#define STATE_NACHT 4
+#define STATE_NACHT_BLINK 5
 #define STATE_HAUPT 2
 #define STATE_NEBEN 3
 
@@ -38,8 +40,18 @@ inline void setStateNacht() {
   TextOut(0, LCD_LINE5, "setNacht    ");
   state = 0;
   WritePorts(0xFF);
-  Wait(1000);
+  Wait(100);
+  startTimer(TIMER_BLINK);
   state = STATE_NACHT;
+}
+
+inline void setStateNachtBlink() {
+  TextOut(0, LCD_LINE5, "setNachtB   ");
+  state = 0;
+  WritePorts(0xFF & AMPEL_NEBEN_GELB);
+  Wait(100);
+  startTimer(TIMER_BLINK);
+  state = STATE_NACHT_BLINK;
 }
 
 inline void changeToStateRot() {
@@ -80,8 +92,19 @@ task runTask() {
         if (eventIsPresent(EVENT_R)) {
           clearAllEvents();
           setStateHaupt();
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          setStateNachtBlink();
         }
-
+      break;
+      case STATE_NACHT_BLINK:
+        if (eventIsPresent(EVENT_R)) {
+          clearAllEvents();
+          setStateHaupt();
+        } else if (eventIsPresent(TIMER_EVENT)) {
+          clearAllEvents();
+          setStateNacht();
+        }
       break;
       case STATE_HAUPT:
 
@@ -149,6 +172,7 @@ task main() {
   SetSensorLowspeed(IN_1);
   setStateHaupt();
   setTimer(TIMER_NEBENSTRASSE, 10000, TIMER_EVENT);
+  setTimer(TIMER_BLINK, 1000, TIMER_EVENT);
   clearEvent(LAMPE);
   StartTask(runTask);
   StartTask(sensorPruef);
