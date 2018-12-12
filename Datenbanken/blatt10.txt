@@ -1,0 +1,94 @@
+Datenbanken - Blatt 10 
+Aufgabe 10.1 
+
+1.a. Käufer bezahlt an Treuhänder
+1.b. Verkäufer sendet Ware an Treuhänder 
+1.c. Treuhänder bestätigt Käufer den Erhalt der Bezahlung 
+1.d. Treuhänder kontrolliert die Qualität der Ware 
+1.e. Treuhänder bestätigt Verkäufer den Erhalt der Ware 
+2. Falls alle Punkte positiv: 
+2.a. Treuhänder sendet Ware an Käufer 
+2.b. Treuhänder sendet Geld an Verkäufer 
+3. Sonst (2): 
+3. Treuhänder sendet alles zurück 
+
+Aufgabe 10.2 
+erst mit SQL hinzugefügt: 
+ alle not-null Bedingungen  
+ alle Datentypen 
+ alle unique 
+ alle check 
+ 
+bereits im Unischema:  
+ alle primary keys
+ alle foreign keys (references) 
+ 
+Aufgabe 10.3 
+ALTER TABLE Vorlesungen
+ADD AnzahlHoerer integer DEFAULT 0; 
+
+UPDATE Vorlesungen 
+SET AnzahlHoerer = (SELECT count(*) FROM hoeren h WHERER h.VorlNr = Vorlesungen.VorlNr); 
+
+CREATE TRIGGER incAnzahlHoerer 
+  BEFORE INSERT INTO hoeren FOR EACH ROW 
+BEGIN
+  UPDATE Vorlesungen 
+  SET AnzahlHoerer = AnzahlHoerer + 1
+  WHERE VorlNr = :new.VorlNr 
+END; 
+
+Aufgabe 10.4 
+falls kein Absturz: 
+Alle alten Datensätze sind 3 Jahre älter. 
+     Heinz ist 43 und Verena ist 36 
+oder Heinz ist 45 und Verena ist 35 
+oder Heinz ist 45 und Verena ist 36 (nur ohne T)
+
+Transaktionsverwaltung liefert serialisierbare Historien, also Historien, die äquivalent sind zu einer seriellen Ausführung der Transaktionen: entweder A vor B oder B vor A. Somit können nur 
+ (Heinz 45, Verena 35) ODER 
+ (Heinz 43, Verena 36)
+erreicht werden. 
+ 
+
+Aufgabe 10.5.a 
+/* Create the schema for our tables */
+create table Movie(
+mID integer PRIMARY KEY, 
+title varchar(30) NOT NULL, 
+year integer NOT NULL CHECK(year > 1900), 
+director varchar(30), 
+UNIQUE (title, year), 
+CHECK ((director <> 'Steven Spielberg' OR year < 1900) AND
+       (director <> 'James Cameron' OR year > 1990))
+);
+
+create table Reviewer(
+rID integer PRIMARY KEY, 
+name varchar(30) NOT NULL
+);
+
+create table Rating(
+rID integer REFERENCES Reviewer ON DELETE SET NULL, 
+mID integer REFERENCES Movie ON DELETE CASCADE, 
+stars integer NOT NULL CHECK(stars IN (1,2,3,4,5)), 
+ratingDate date CHECK(ratingDate > '2000-12-31'), 
+UNIQUE (rID, mID, ratingDate)
+);
+
+Aufgabe 10.5.b 
+- Titel+Jahr ist unique (Titanic 1997 ex. bereits)
+- rID ist key (201 ex. bereits) 
+- unique 
+- not null 
+- not null 
+- year must > 1900
+- check stars max=5
+- datum muss > 2000 
+- steven spielberg muss < 1990 
+- james cameron muss > 1990  
+
+Aufgabe 10.5.c 
+- passt schon 
+
+
