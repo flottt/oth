@@ -1,0 +1,5 @@
+E8 = JR (jump relative) 
+C3 FF FF FF (LSF) = -0x3D = -61  
+Programmcounter vor Befehl:             0x80497D8 
+Programmcounter nach Befehl-Catch: +5 = 0x80497DD  (JR hat 5 Bytes)
+Programmcounter nach Jump:      -0x3D = 0x80497A0    
