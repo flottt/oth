@@ -1,0 +1,233 @@
+typedef char feld;
+typedef unsigned char routefeld;
+#define MAPWIDTH 14
+#define MAPHEIGHT 14
+feld map[MAPWIDTH * MAPHEIGHT + 1];
+routefeld route[MAPWIDTH * MAPHEIGHT + 1];
+int pos;
+
+#define mapp(x, y) (map[(y) * MAPWIDTH + (x)])
+#define getX() (pos % MAPWIDTH)
+#define getY() (pos / MAPWIDTH)
+#define NEXTFLAG_OBEN 1
+#define NEXTFLAG_UNTEN 2
+#define NEXTFLAG_LINKS 4
+#define NEXTFLAG_RECHTS 8
+#define NEXTFLAG_OR 16
+#define NEXTFLAG_UR 32
+#define NEXTFLAG_OL 64
+#define NEXTFLAG_UL 128
+#define NEXTDIFF_OBEN() (-MAPWIDTH)
+#define NEXTDIFF_UNTEN() (+MAPWIDTH)
+#define NEXTDIFF_LINKS() (-1)
+#define NEXTDIFF_RECHTS() (1)
+#define NEXTDIFF_OBENRECHTS() (NEXTDIFF_OBEN() + NEXTDIFF_RECHTS())
+#define NEXTDIFF_UNTENRECHTS() (NEXTDIFF_UNTEN() + NEXTDIFF_RECHTS())
+#define NEXTDIFF_OBENLINKS() (NEXTDIFF_OBEN() + NEXTDIFF_LINKS())
+#define NEXTDIFF_UNTENLINKS() (NEXTDIFF_UNTEN() + NEXTDIFF_LINKS())
+
+int debug = 0;
+
+void readFile(string FILENAME = "map.txt");
+void routeTo(feld ziel);
+
+void readFile(string FILENAME) {
+	map[MAPWIDTH * MAPHEIGHT] = '\0';
+	route[MAPWIDTH * MAPHEIGHT] = '\0';
+  int filesize = 0;
+  byte file = 0;
+  OpenFileRead(FILENAME, filesize, file);
+  Read(file, map);
+  CloseFile(file);
+}
+
+void setzePosAufStart() {
+  for (int index = 0; index < (MAPWIDTH * MAPHEIGHT); index++) {
+    if (map[index] == 'S') {
+      pos = index;
+      return;
+    }
+  }
+}
+
+/** put value on the stack #index */
+inline void pushToStack(int & stack[], int distanz, int feldPtr) {
+  route[feldPtr] = distanz;
+  distanz %= 4;
+  int index = distanz * (2 * (MAPHEIGHT + MAPWIDTH));
+  stack[index]++;
+  int neueAnzahl = stack[index];
+  stack[index + neueAnzahl] = feldPtr;
+  
+  debug+= 20;
+  if (debug < 100)
+  NumOut(debug, LCD_LINE6, feldPtr);
+}
+
+inline int popFromStack(int & stack[], int distanz) {
+  distanz %= 4;
+  int index = distanz * (2 * (MAPHEIGHT + MAPWIDTH));
+
+  if (stack[index] == 0) {
+    return -1;
+  } else {
+    int alteAnzahl = stack[index];
+    stack[index]--;
+	index += alteAnzahl; 
+	return stack[index]; 
+  }
+}
+
+/** test if any stack has a content. */
+inline bool hasAnyStack(int & stack[]) {
+  int index = 0;
+	for (int i = 0; i < 4; ++i) {
+		if (stack[index * (2 * (MAPHEIGHT + MAPWIDTH))] != 0) {
+      return true;
+    }
+	}
+	return false;
+}
+
+inline void checkeNachbarfeld(
+               int & fetterstack[],
+               int nextfeldzeiger,
+               int & nextfeldflags,
+               int nextfeldflagmask,
+               int requirenextfeldflagmask,
+               int distanzInklMetrik) {
+  int stackIndex = 0;
+
+//  if (((nextfeldflags & requirenextfeldflagmask) == requirenextfeldflagmask) && (map[nextfeldzeiger] != '#')) {
+  if ((map[nextfeldzeiger] != '#')) {
+//		nextfeldflags |= nextfeldflagmask;
+		if (route[nextfeldzeiger] > distanzInklMetrik) {
+			pushToStack(fetterstack, distanzInklMetrik, nextfeldzeiger);
+		}
+	}
+}
+
+inline void routeTo_berechneDistanzen(feld ziel) {
+	//resette route array
+	int mapIndex = 0;
+	int mapSize = MAPHEIGHT * MAPWIDTH;
+
+	//jeweils erst size, dann content
+ 	int fetterstack[4 * (2 * (MAPHEIGHT + MAPWIDTH))];
+ 	for (int i = 0; i < 4 * (2 * (MAPHEIGHT + MAPWIDTH)); i++) {
+      fetterstack[i] = 0;
+    }
+ 	
+
+	routefeld distanz = 0;
+	int xxx = 0;
+	
+  for (int index = 0; index < mapSize; index++) {
+    if (map[index] == ziel) {
+      pushToStack(fetterstack, distanz, index);
+      xxx++;
+    } else {
+      route[index] = 250;
+    }
+  }
+
+	while (1) {
+    TextOut(0, LCD_LINE2, "dist =           ");
+    NumOut(40, LCD_LINE2, distanz);
+//    if (!hasAnyStack(fetterstack)) return; //failed
+		while (1) {
+
+		
+			int feldzeiger = popFromStack(fetterstack, distanz);
+			if (feldzeiger == -1) break;
+      TextOut(0, LCD_LINE3, "fzei =          ");
+			NumOut(40, LCD_LINE3, feldzeiger);
+
+			if (feldzeiger == pos) return;
+			if (route[feldzeiger] != distanz) continue;
+			int nextfeldflags = 0;
+			checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_OBEN(), nextfeldflags, NEXTFLAG_OBEN, 0, distanz + 2);
+			checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_UNTEN(), nextfeldflags, NEXTFLAG_UNTEN, 0, distanz + 2);
+			checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_LINKS(), nextfeldflags, NEXTFLAG_LINKS, 0, distanz + 2);
+			checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_RECHTS(), nextfeldflags, NEXTFLAG_RECHTS, 0, distanz + 2);
+			//checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_OBENRECHTS(), nextfeldflags, 0, NEXTFLAG_OBEN | NEXTFLAG_RECHTS, distanz + 3);
+			//checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_UNTENRECHTS(), nextfeldflags, 0, NEXTFLAG_UNTEN | NEXTFLAG_RECHTS, distanz + 3);
+			//checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_OBENLINKS(), nextfeldflags, 0, NEXTFLAG_OBEN | NEXTFLAG_LINKS, distanz + 3);
+			//checkeNachbarfeld(fetterstack, feldzeiger + NEXTDIFF_UNTENLINKS(), nextfeldflags, 0, NEXTFLAG_UNTEN | NEXTFLAG_LINKS, distanz + 3);
+		}
+		distanz++;
+	}
+}
+
+/*
+inline void vergleiche(int nextfeldzeiger, int * mindistanz, int * nexthop, int distanz, int * nexthop2, int * nexthop3, int * nextfeldflags, const int nextfeldmask, const int requirenextfeldmask) {
+	if (((*nextfeldflags & requirenextfeldmask) == requirenextfeldmask) && (map[nextfeldzeiger] != '#')) {
+		*nextfeldflags |= nextfeldmask;
+		int routedistanz = route[nextfeldzeiger];
+		if (routedistanz == distanz - 2) {
+			*nexthop2 = nextfeldzeiger;
+		}
+		if (routedistanz == distanz - 3) {
+			*nexthop3 = nextfeldzeiger;
+		}
+		if (routedistanz < *mindistanz) {
+			*nexthop = nextfeldzeiger;
+			*mindistanz = route[nextfeldzeiger];
+		}
+	}
+}
+*/
+
+//using fact, that border is wall. => no overflow-check neccessary.
+void routeTo(feld ziel) {
+	routeTo_berechneDistanzen(ziel);
+
+  /*
+	int position = pos;
+	int distanz = route[pos];
+	int nexthop, nexthop2, nexthop3;
+	int mindistanz;
+
+	while (map[position] != ziel) {
+		distanz = mindistanz = route[position];
+		nexthop2 = -1; nexthop3 = -1;
+		int nextfeldflags = 0;
+		vergleiche(position + NEXTDIFF_OBEN(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, NEXTFLAG_OBEN, 0);
+		vergleiche(position + NEXTDIFF_UNTEN(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, NEXTFLAG_UNTEN, 0);
+		vergleiche(position + NEXTDIFF_LINKS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, NEXTFLAG_LINKS, 0);
+		vergleiche(position + NEXTDIFF_RECHTS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, NEXTFLAG_RECHTS, 0);
+		vergleiche(position + NEXTDIFF_OBENLINKS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, 0, NEXTFLAG_OBEN | NEXTFLAG_LINKS);
+		vergleiche(position + NEXTDIFF_OBENRECHTS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, 0, NEXTFLAG_OBEN | NEXTFLAG_RECHTS);
+		vergleiche(position + NEXTDIFF_UNTENLINKS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, 0, NEXTFLAG_UNTEN | NEXTFLAG_LINKS);
+		vergleiche(position + NEXTDIFF_UNTENRECHTS(), &mindistanz, &nexthop, distanz, &nexthop2, &nexthop3, &nextfeldflags, 0, NEXTFLAG_UNTEN | NEXTFLAG_RECHTS);
+
+		if (nexthop3 != -1) {
+			if (map[position] <= ' ') map[position] = 'x';
+			position = nexthop3;
+		} else if (nexthop2 != -1) {
+			if (map[position] <= ' ') map[position] = 'x';
+			position = nexthop2;
+		} else {
+			if (map[position] <= ' ') map[position] = 'x';
+			position = nexthop;
+		}
+
+
+	}
+
+   */
+
+
+}
+
+task main() {
+  readFile();
+  setzePosAufStart();
+  TextOut(0, LCD_LINE5, "pos  =           ");
+  NumOut(40, LCD_LINE5, pos);
+
+  
+  routeTo('2');
+  TextOut(0, LCD_LINE1, "fertig ");
+  while(1);
+}

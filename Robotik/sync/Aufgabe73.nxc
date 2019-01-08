@@ -1,0 +1,38 @@
+//Read from file
+#define MAPWIDTH 14
+#define MAPHEIGHT 14
+
+char map[MAPWIDTH * MAPHEIGHT + 1];
+
+void testFkt(int & jj[]) {
+  jj[3] = 99;
+}
+
+void testRefFkt(int & wert) {
+  wert |= 8;
+}
+
+task main() {
+
+  int iii = 3;
+  testRefFkt(iii);
+  NumOut(0, LCD_LINE5, iii);
+  
+
+
+
+
+  int ii[7];
+  ii[3] = 88;
+  testFkt(ii);
+  NumOut(0, LCD_LINE4, ii[3]);
+
+  string FILENAME = "map.txt";
+  int filesize = 0;
+  byte file = 0;
+  OpenFileRead(FILENAME, filesize, file);
+  NumOut(0, LCD_LINE2, filesize);
+  Read(file, map);
+  CloseFile(file);
+  while(1);
+}
