@@ -1,0 +1,36 @@
+Aufgabe 13.1: 
+max(|A|, |B|) <= |A u B| <= |A| + |B| 
+0 <= |A join B| <= |A| * |B| 
+||A| - |B|| <= |A \ B| <= |A| 
+|A x B| = |A| * |B| 
+0 <= |A n B| <= min(|A|, |B|) 
+
+Aufgabe 13.2: 
+#3: select studentID, department from enroll natural join course
+#4: select distinct office from instructor natural join course 
+
+Index auf Instructor.office: unnötig
+Index auf Student.major: hilfreich für #5. 
+Index auf Course.instrID: auf für #4 unnötig
+Index auf Enroll.studentID:  sehr hilfreich für Anfrage #2. 
+
+Aufgabe 13.3: 
+.jpg
+
+Aufgabe 13.4.a: 1/|Professoren|
+Aufgabe 13.4.c: 
+sel(a1 x a2 x p) = |lsg| / |A|²|P| 
+sel(a1.PersNr <> a2.PersNr) = |lsg| / (|lsg|+1), andere Selektienen finden direkt oder als Join statt. 
+
+Aufgabe 13.5: 
+Flughafen: {[ _fID_: char(3), name: varchar(64), ort: varchar(64), land: varchar(64) ]}
+Verbindung: {[_linie_: string, zeitAbflug: time, zeitAnkunft: time, fkStartFH: char(3), fkZielFH: char(3) ]}
+
+SELECT v.* 
+FROM Verbindung v 
+JOIN Flughafen f1 ON f1.fID = v.fkStartFH 
+JOIN Flughafen f2 ON f2.fID = v.fkZielFH 
+WHERE f1.ort = 'München' 
+AND f1.land = 'Deutschland' 
+AND f2.ort = 'New York' 
+AND f2.land = 'USA'; 
