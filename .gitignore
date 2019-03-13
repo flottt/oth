@@ -43,9 +43,10 @@ Robotik/grips/*
 *[Kk]ey.txt
 *[Zz]ulassung.pdf
 *.odg
-/DigitalDesign/SchaltungAddierer.ods
-/pg2_cpp_05a_OOA_Beispiel.pdf
-/PG2_OOA.odt
-/PG2_OOA.pdf
-/Robotik/sync/DEA.ods
-/DigitalDesign/logisim-evolution.jar
+/veraltet/DigitalDesign/SchaltungAddierer.ods
+/veraltet/PG2/pg2_cpp_05a_OOA_Beispiel.pdf
+/veraltet/PG2/PG2_OOA.odt
+/veraltet/PG2/PG2_OOA.pdf
+/veraltet/Robotik/sync/alt/DEA.ods
+/veraltet/DigitalDesign/logisim-evolution.jar
+/veraltet/Robotik/sync/pcf8574llb.nxc
