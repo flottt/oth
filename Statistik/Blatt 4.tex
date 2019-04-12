@@ -1,0 +1,321 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[a4paper, 12pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+\geometry{margin=2cm} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+\usepackage {stmaryrd}
+\newcommand{\eqgood}{\overset{\surd}{=\joinrel=}}
+\newcommand{\eqbad}{{=\hspace{-1.3ex} \lightning \hspace{-1.3ex} \joinrel =}}
+
+\usepackage[german]{babel}
+\usepackage{fontenc}
+\usepackage{amsmath}
+\usepackage {relsize}
+\usepackage[thinlines]{easytable}
+\usepackage{verbatim}
+\usepackage{tikz}
+\tikzset{
+  treenode/.style = {shape=rectangle, rounded corners,
+                     draw, align=center,
+                     top color=white, bottom color=blue!20},
+  root/.style     = {treenode, font=\Large, bottom color=red!30},
+  env/.style      = {treenode, font=\ttfamily\normalsize},
+  dummy/.style    = {circle,draw},
+  leaf/.style    = {treenode, bottom color=green!30}
+}
+
+\lineskiplimit=-100pt\relax
+\linespread{1.2}
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\newcommand{\aufgabe}[1]{{\huge Statistik Übung \underline{Aufgabe #1}}\\[3.5ex]  } 
+
+\begin{document}
+\aufgabe{11} 
+Gegeben sei die Menge $M := \{1,2,3,4,5,6,7,8\}$ und \\ ein Wahrscheinlichkeitsmaß auf dieser Menge mit $P[\{i\}] = \frac{1}{8} \; \forall i \in M$. \\[1ex]
+Für die Ereignisse $D := \emptyset$ und $E := M$ gilt: \\
+$\surd$ \hspace{1cm}$D$ und $E$ sind \textbf{disjunkt}: $D \cap E = \emptyset$ \\
+$\surd $ \hspace{1cm}$D$ und $E$ sind \textbf{unabhängig}: $0 = P(D \cap E) \overset{\surd}{=\joinrel=} P(D) * P(E) = 0 * 1$ \\
+$\surd $ \hspace{1cm}$D$ und $E$ ergeben sie \textbf{ganze} Menge $M$: $D \cup E = M$ \\[3ex]
+Für die Ereignisse 
+$A := \{1, 2, 3, 4\}$, 
+$B := \{2, 4, 6, 8\}$ und 
+$C:= \{1, 8\}$ gilt: \\ 
+$\surd$ \hspace{1cm} $A$ und $B$ sind unabhängig: $P(A \cap B) =  P(\{2, 4\}) = \frac{1}{4} \eqgood P(A) * P(B)$ \\
+$\surd$ \hspace{1cm} $B$ und $C$ sind unabhängig: $P(B \cap C) =  P(\{8\}) = \frac{1}{8} \eqgood P(B) * P(C)$ \\
+$\surd$ \hspace{1cm} $A$ und $C$ sind unabhängig: $P(A \cap C) =  P(\{1\}) = \frac{1}{8} \eqgood P(A) * P(C)$ \\
+$\times$ \hspace{1cm} $A$ und $B$ und $C$ sind aber nicht unabhängig: \\
+\- \hspace{2cm} $P(A \cap B \cap C) =  P(\emptyset) = 0 \eqbad \frac{1}{16} = P(A) * P(B) * P(C)$ \\
+\- \dotfill
+\\[4ex]
+\aufgabe{12}
+Ereignis $B$ sind die Farbenblinden, $\overline{B}$ die Leute ohne Sehschwäche.\\
+Ereignis $W$ sind die Frauen, $\overline{W}$ die Männer. \\[1ex]
+\begin{TAB}(r,1cm,1cm)[5pt]{|r|r|r|r|}{|c|c|c|c|}
+KT
+&
+$B$
+&
+$\overline{B}$
+&
+$\sum$
+\\
+$W$ 
+& 
+$0,771 \%$ {\scriptsize $(P(B | W) = 1,5 \%)$}
+&
+$50,629 \%$ {\scriptsize $ = P(W) - P(B \cap W) $}
+&
+$51,4 \%$ {\scriptsize $ = 1 - P(\overline{W})$}
+\\
+$\overline{W}$
+&
+$3,598 \%$ {\scriptsize $(P(B | \overline{W}) = 7 \%)$}
+&
+$45,002 \%$ {\scriptsize $ = P(\overline{W}) - P(B \cap \overline{W}) $}
+&
+$48,6 \%$ {\scriptsize gegeben }
+\\
+$\sum$
+&
+$4,369 \%$
+&
+$95,631 \%$
+&
+$100 \%$
+\\
+\end{TAB} \\
+$P(B) = 4,369 \%$ der Bevölkerung sind farbenblind. \\
+Die Ereignisse $B$ und $W$ sind nicht unabhängig, \\
+\- \hspace{1cm} weil $0,771 \% = P(B \cap W) \eqbad P(B) * P(W) = 4,369 \% * 51,4 \% = 2,246 \%$ \\
+$P(\overline{W} | B) = 3,598 \% / 4,369 \% = 82,35 \%$ der Farbenbilden sind männlich. \\
+\- \dotfill
+\\[4ex]
+\aufgabe{14}
+\\[6ex]
+\begin{TAB}(r, 2cm, 1ex)[5pt, 15cm, 1cm]{|l|r|r|r|r|r|r|r|}{|c|c|c|}
+Kleinste Augensumme
+&
+0
+&
+1
+&
+2
+&
+3
+&
+4
+&
+5
+&
+6
+\\
+Wahrscheinlichkeit [1/36]
+&
+0
+&
+1
+&
+3
+&
+5
+&
+7
+&
+9
+&
+11
+\\
+kum Verteilungsfunktion [1/36]
+&
+0
+&
+1
+&
+4
+&
+9
+&
+16
+&
+25
+&
+36
+\\
+\end{TAB}
+\bigskip
+\newpage
+\aufgabe{13}
+\bigskip
+Pralinenfabrik Mon Cherie \\[14ex]
+\begin{TAB}(r,1cm,1cm)[5pt]{|l|l|}{|t|t|t|}
+Ereignis $A$ Praline kommt aus Fabrik A. 
+&
+Ereigis $B = \overline{A}$ Praline kommt aus Fabrik B. 
+\\
+Ereignis $K$ Praline enthält weiterhin einen Kern. 
+&
+Ereignis $\overline{K}$ Praline wurde korrekt entkernt. 
+\\
+Ereignis $V$ Praline wird verkauft. 
+&
+Ereignis $\overline{V}$ Praline wird entsorgt. 
+\\
+\end{TAB} \\[1ex]
+$P(K|V) = \frac{P(K \cap V)}{P(V)} = \frac{0,355 \%}{91,397 \%} = 0,388 \% =: p$\\[1ex]
+$B(100, p, 0) = (1-p)^{100} = 67,76 \% $ Chance, eine gute Packung zu erwischen. \\[1ex]
+\begin{figure}[htbp]
+\begin{tikzpicture}  [
+    grow                    = right,
+    level 1/.style={sibling distance=16em},    
+    level 2/.style={sibling distance=7em}, 
+    level 3/.style={sibling distance=3em}, 
+    level 4/.style={sibling distance=3em}, 
+    level distance          = 9em,
+    edge from parent/.style = {draw, -latex},
+    every node/.style       = {font=\footnotesize},
+    sloped
+  ]
+\node [root] {}
+  child { 
+    node [env] {$B$}
+    child {
+      node [env] {$\overline{K}$}
+      child {
+        node [env] {$\overline{V}$}
+        child {
+          node [leaf] {$P(B\overline{KV})=0,570 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [below] {$P(\overline{V} | \overline{K})= 2 \%$}           
+      }
+      child {
+        node [env] {$V$}
+        child {
+          node [leaf] {$P(B\overline{K}V)=27,930 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [above] {$P(V | \overline{K})= 98 \%$}           
+      }
+      edge from parent node [above] {$P(\overline{K} | B)=95 \%$} 
+    } %end nK
+    child {
+      node [env] {$K$}
+      child {
+        node [env] {$\overline{V}$}
+        child {
+          node [leaf] {$P(BK\overline{V})=1,425 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [below] {$P(\overline{V} | K)= 95 \%$}           
+      }
+      child {
+        node [env] {$V$}
+        child {
+          node [leaf] {$P(BKV)=0,075 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [above] {$P(V | K)= 5 \%$}           
+      }
+      edge from parent node [above] {$P(K | B)=5 \%$} 
+    }
+    edge from parent node [above] {$P(B)=30 \%$} 
+  }
+  child { 
+    node [env] {$A$}
+    child {
+      node [env] {$\overline{K}$}
+      child {
+        node [env] {$\overline{V}$}
+        child {
+          node [leaf] {$P(A\overline{KV})=1,288 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [below] {$P(\overline{V} | \overline{K})= 2 \%$}           
+      }
+      child {
+        node [env] {$V$}
+        child {
+          node [leaf] {$P(A\overline{K}V)=63,112 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [above] {$P(V | \overline{K})= 98 \%$}           
+      }
+      edge from parent node [above] {$P(\overline{K} | A)=8 \%$} 
+    } %end nK
+    child {
+      node [env] {$K$}
+      child {
+        node [env] {$\overline{V}$}
+        child {
+          node [leaf] {$P(AK\overline{V})=5,320 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [below] {$P(\overline{V} | K)= 95 \%$}           
+      }
+      child {
+        node [env] {$V$}
+        child {
+          node [leaf] {$P(AKV)=0,280 \%$}
+          edge from parent node [draw=none] {}           
+        }
+        edge from parent node [above] {$P(V | K)= 5 \%$}           
+      }
+      edge from parent node [above] {$P(K | A)=8 \%$} 
+    }
+    edge from parent node [above] {$P(A)=70 \%$} 
+  };
+\end{tikzpicture}
+\end{figure}
+\end{document}
