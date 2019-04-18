@@ -1,0 +1,581 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[a4paper, 12pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+\geometry{margin=2cm} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+\usepackage {stmaryrd}
+\newcommand{\eqgood}{\overset{\surd}{=\joinrel=}}
+\newcommand{\eqbad}{{=\hspace{-1.3ex} \lightning \hspace{-1.3ex} \joinrel =}}
+
+\usepackage[german]{babel}
+\usepackage{fontenc}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage {relsize}
+\usepackage{diagbox}
+\usepackage{tikz}
+\usepackage{Mnsymbol}
+\tikzset{
+  treenode/.style = {shape=rectangle, rounded corners,
+                     draw, align=center,
+                     top color=white, bottom color=blue!20},
+  root/.style     = {treenode, font=\Large, bottom color=red!30},
+  env/.style      = {treenode, font=\ttfamily\normalsize},
+  dummy/.style    = {circle,draw},
+  leaf/.style    = {treenode, bottom color=green!30}
+}
+
+\linespread{1.2}
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\newcommand{\aufgabe}[1]{{\huge Statistik Übung \underline{Aufgabe #1}}\\[3.5ex]  } 
+
+\begin{document}
+\aufgabe{15} 
+\begin{tabular}{| c || c | c | c || c | c | c | c | c |}
+\hline
+\diagbox{$Y$}{$X$}
+&
+$0$
+&
+$2$
+&
+$4$
+&
+$y$
+&
+$P(Y=y)$
+&
+$y * P(Y = y)$
+&
+$y^2$
+&
+$y^2 * P(Y = y)$
+\\
+\hline
+\hline
+$-1$
+&
+$\frac{8}{32}$
+&
+$\frac{1}{32}$
+&
+$\frac{1}{32}$
+&
+$-1$
+&
+$\frac{10}{32}$
+&
+$-\frac{10}{32}$
+&
+1
+&
+$\frac{10}{32}$
+\\
+\hline
+$0$
+&
+$\frac{4}{32}$
+&
+$\frac{5}{32}$
+&
+$0$
+&
+$0$
+&
+$\frac{9}{32}$
+&
+$0$
+&
+$0$
+&
+$0$
+\\
+\hline
+$2$
+&
+$\frac{4}{32}$
+&
+$\frac{8}{32}$
+&
+$\frac{1}{32}$
+&
+$2$
+&
+$\frac{13}{32}$
+&
+$\frac{26}{32}$
+&
+4
+&
+$\frac{52}{32}$
+\\
+\hline
+\hline
+$x$
+&
+$0$
+&
+$2$
+&
+$4$
+&
+\multirow{2}*{}
+&
+\multirow{2}*{$\sum = \frac{32}{32}$}
+&
+\multirow{2}*{$E(Y) = \frac{16}{32}$}
+&
+\multirow{2}*{}
+&
+\multirow{2}*{$E(Y^2) = \frac{62}{32}$}
+\\
+\cline{1-4}
+$P(X = x)$
+&
+$\frac{16}{32}$
+&
+$\frac{14}{32}$
+&
+$\frac{2}{32}$
+&
+&
+&
+&
+&
+\\
+\hline
+$x * P(X=x)$
+&
+$0$
+&
+$\frac{28}{32}$
+&
+$\frac{8}{32}$
+& 
+\multicolumn{5}{ l|}{$E(X) = \frac{36}{32}$}
+\\
+\hline
+$x^2$
+&
+$0$
+& 
+$4$
+&
+$16$
+&
+\multicolumn{5}{ l|}{}
+\\
+\hline
+$x^2 * P(X=x)$
+&
+$0$
+&
+$\frac{56}{32}$
+&
+$\frac{32}{32}$
+&
+\multicolumn{5}{ l|}{$E(X^2) = \frac{88}{32}$}
+\\
+\hline
+\end{tabular}\\[1ex]
+\begin{tabular}{| c || c | c | c || c |}
+\hline
+$Z = min(X, Y)$ 
+& 
+$-1$
+&
+$0$
+&
+$2$
+&
+$\sum$
+\\
+\hline
+$P(Z = z)$
+&
+$\frac{10}{32}$
+&
+$\frac{13}{32}$
+&
+$\frac{9}{32}$
+&
+$\frac{32}{32}$
+\\
+\hline
+$z * P(Z = z)$
+&
+$-\frac{10}{32}$
+&
+$0$
+&
+$\frac{18}{32}$
+&
+$E(Z) = \frac{8}{32}$
+\\
+\hline
+$Z^2$
+&
+$1$
+&
+$0$
+&
+$4$
+&
+\\
+\hline
+$z^2 * P(Z = z)$
+&
+$\frac{10}{32}$
+&
+$0$
+&
+$\frac{36}{32}$
+&
+$E(Z^2) = \frac{46}{32}$
+\\
+\hline
+\end{tabular}\\[1ex]
+\begin{tabular}{ | c || c | c | c || c | }
+\hline
+$ZY=w$
+&
+$0$
+&
+$1$
+& 
+$4$
+&
+$\sum$
+\\
+\hline
+Urbilder 
+&
+$\{Y = 0\} \cupdot \{Y=2 \wedge X=0\}$
+&
+$\{Y = -1 \}$
+& 
+$\{Y = 2 \wedge X \neq 0\}$
+& 
+$\Omega$
+\\
+\hline
+$P(ZY= w)$
+&
+$\frac{13}{32}$
+&
+$\frac{10}{32}$
+&
+$\frac{9}{32}$
+& 
+$\frac{32}{32}$
+\\
+\hline
+$w * P(ZY= w)$
+&
+$0$
+&
+$\frac{10}{32}$
+&
+$\frac{36}{32}$
+& 
+$E(ZY) = \frac{46}{32}$
+\\
+\hline
+\end{tabular}\\[1ex]
+\begin{tabular}{l l l}
+$E(X) = \frac{36}{32} = \frac{9}{8} = 1,125 $ 
+&&
+$Var(X) = \frac{88}{32} - (\frac{36}{32})^2 = 1,484375 \approx 1,5 $ 
+\\
+$E(Y) = \frac{16}{32} = \frac{1}{2} = 0,5 $ 
+&\hspace{2cm} \; &
+$Var(Y) = \frac{62}{32} - (\frac{1}{2})^2 = 1,6875 \approx 1,7 $ 
+\\
+$E(Z) = \frac{8}{32} = \frac{1}{4} = 0,25 $ 
+&&
+$Var(Z) = \frac{46}{32} - (\frac{1}{4})^2 = 1,375 $ 
+\\
+\multicolumn{3}{l }{$CoVar(Z, Y) = E(ZY) - E(Z) E(Y) = \frac{46}{32} - \frac{1 * 1}{4 * 2 } =  1,3125$}
+\\
+\end{tabular}\\[1ex]
+\- \dotfill
+\\[4ex]
+\aufgabe{16}
+\begin{tabular}{ | c | | c | c | c | c || c | }
+\hline
+\diagbox{$X$}{$Y$}
+&
+kein
+&
+gering
+&
+mittel
+&
+groß
+&
+$\sum$
+\\
+\hline
+\hline
+Ulme
+&
+$8$
+&
+$6$
+&
+$5$
+&
+$1$
+&
+$20$
+\\
+\hline
+Kiefer 
+&
+$7$
+&
+$10$
+&
+$3$
+&
+$0$
+&
+$20$
+\\
+\hline
+ Fichte
+&
+$2$
+&
+$6$
+&
+$15$
+&
+$8$
+&
+$31$
+\\
+\hline
+\hline
+$\sum$
+&
+$17$
+&
+$22$
+&
+$23$
+&
+$9$
+&
+$71$
+\\
+\hline
+\hline
+Ulme
+&
+$40\%$
+&
+$30\%$
+&
+$25\%$
+&
+$5\%$
+& 
+$100\%$
+\\
+\hline
+\end{tabular}\\[1ex]
+$X$ und $Y$ sind nicht unabhängig, weil \\$P(X= $ Kiefer$, Y = $ groß$) = 0 \; \eqbad \; \frac{20 * 9}{71 * 71} = P(X=$ Kiefer$) * P(Y = $ groß$)$
+\newpage
+\aufgabe{17}
+\begin{figure}[htbp]
+\begin{tikzpicture} [
+ grow = right, 
+ level 1/.style={sibling distance=16em},    
+ level 2/.style={sibling distance=7em}, 
+ level 3/.style={sibling distance=3em}, 
+ level 4/.style={sibling distance=3em}, 
+ level distance = 9em, 
+ edge from parent/.style = {draw, -latex},
+ every node/.style       = {font=\footnotesize},
+ sloped	 ]
+\node [root] {}
+child {
+  node [env] {$G$}
+  child {
+    node [env] {$G$}
+    child {
+      node [env] {$G$} 
+        child {
+          node [leaf] {$P(GGG) = \frac{1 * 1 * 1}{7^3} $} [white]
+        }
+       edge from parent node [below] {$1/7$}          
+    }
+    child {
+      node [env] {$B$}
+        child {
+          node [leaf] {$P(GGB) = \frac{6 * 1 * 1}{7^3} $} [white]
+        }
+       edge from parent node [above] {$6/7$}          
+    }
+     edge from parent node [above] {$1/7$}          
+  }
+  child {
+    node [env] {$B$}
+    child {
+      node [env] {$G$} 
+        child {
+          node [leaf] {$P(GBG) = \frac{6 * 2 * 1}{7^3} $} [white]
+        }
+       edge from parent node [below] {$2/7$}          
+    }
+    child {
+      node [env] {$B$}
+        child {
+          node [leaf] {$P(GBB) = \frac{6 * 5 * 1}{7^3} $} [white]
+        }
+       edge from parent node [above] {$5/7$}          
+    }
+     edge from parent node [above] {$6/7$}          
+  }
+   edge from parent node [above] {$1/7$}          
+}
+child {
+  node [env] {$B$}
+  child {
+    node [env] {$G$}
+    child {
+      node [env] {$G$} 
+        child {
+          node [leaf] {$P(BGG) = \frac{6 * 2 * 2}{7^3} $} [white]
+        }
+       edge from parent node [below] {$2/7$}          
+    }
+    child {
+      node [env] {$B$}
+        child {
+          node [leaf] {$P(BGB) = \frac{6 * 5 * 2}{7^3} $} [white]
+        }
+       edge from parent node [above] {$5/7$}          
+    }
+     edge from parent node [above] {$2/7$}          
+  }
+  child {
+    node [env] {$B$}
+    child {
+      node [env] {$G$} 
+        child {
+          node [leaf] {$P(BBG) = \frac{6 * 5 * 3}{7^3} $} [white]
+        }
+       edge from parent node [below] {$3/7$}          
+    }
+    child {
+      node [env] {$B$}
+        child {
+          node [leaf] {$P(BBB) = \frac{6 * 5 * 4}{7^3} $} [white]
+        }
+       edge from parent node [above] {$4/7$}          
+    }
+     edge from parent node [above] {$5/7$}          
+  }
+   edge from parent node [above] {$6/7$}          
+};
+\end{tikzpicture}
+\end{figure}
+\\[1ex]
+Sei $X$ die Anzahl der gezogenen gelben Karten und $Y$ der Auszahlungsbetrag des Spielers. \\
+\begin{tabular}{|c||c|c|c|c||c|}
+\hline 
+$X$	&		$0$	&	$1$	&	$2$	&	$3$	& 	$\sum$	\\ \hline
+\hline
+$7^3 * P(X=x)$ &	$120$	&	$180$	&	$42$	&	$1$	&	$343$	\\ \hline
+$Y$	 &		$0$	&	$2$	&	$5$	&	$100$	&		\\ \hline
+$y * P(Y=y)$ &	$0$	&	$\frac{360}{343}$ & $\frac{210}{343}$ & $\frac{100}{343}$	& 	$E(Y) = \frac{670}{343} \approx 1,95$ \\ \hline
+\end{tabular}\\[1ex]
+Mit einer Teilnahmegebühr von {\boldmath$2,95 $ Euro} macht die Bank \\im Schnitt pro Spiel einen Euro Gewinn. \\
+\newpage
+\aufgabe{Ü 3.1}
+Sei $W$ das Ergebnis des in der Aufgabe beschriebenen Experiments. \\
+\begin{tabular}{| c || c | c | c | c | c | c || c | }
+\hline
+$W$ 	& 	1 	& 	2 	& 	3 	& 	4 	& 	5 	& 	6 	& $\sum$ \\ \hline
+$P(W=w)$ &	$\frac{5}{18}$ &	$\frac{5}{18}$ &	$\frac{5}{18}$ &	$\frac{1}{18}$ &	$\frac{1}{18}$ &	$\frac{1}{18}$ &	$\frac{18}{18}$  \\ \hline
+\end{tabular} \\[2cm]
+\- \dotfill
+\\[4ex]
+\aufgabe{Ü 3.2}
+Die $6$ Plätze in Fahrtrichtung auf $5$ Personen verteilen: $6! / 1! = 720$ Möglichkeiten \\
+Die $6$ Plätze gegen Fahrtrichtung auf $4$ Personen verteilen: $6! / 2! = 360$ Möglichkeiten \\
+Die übrigen $3$ Plätze auf die übrigen $3$ Personen verteilen: $3! = 6$ Möglichkeiten \\
+Insgesamt gibt es $720 * 360 * 6 = 1.555.200$ Möglichkeiten, die Gruppe zu verteilen \\
+\bigskip
+Sieht man sich nur die Abteile an: \\
+Wir betrachten nur Abteil 1, weil alle, die nicht dort sitzen, sind automatisch in Abteil 2. \\
+Sei $F_{VW}$ die Menge der 5 Personen, die nur vorwärts fahren wollen. \\
+Sei $F_{RW}$ die Menge der 4 Personen, die nur rückwärts fahren wollen. \\
+Sei $F_{F}$ die Menge der 3 Personen, denen die Richtung egal ist. \\
+Zu den 3 Mengen seien $F_{VW}^1$, $F_{RW}^1$ und $F_{F}^1$ die Teilmengen, die in Abteil 1 sitzen. \\[1ex]
+\begin{tabular}{|c|c|c|cc|}
+\hline
+$\#F_{VW}^1$ 	&	$\#F_{RW}^1$ 	&	$\#F_{F}^1$ 	&	Möglichkeiten 	& \\ \hline \hline
+$2$ & $1$ & $3$ & $10*4*1 = $ & $40$\\ \hline
+$2$ & $2$ & $2$ & $10*6*3 = $ & $180$\\ \hline
+$2$ & $3$ & $1$ & $10*4*3 = $ & $120$\\ \hline
+$3$ & $1$ & $2$ & $10*4*3 = $ & $120$\\ \hline
+$3$ & $2$ & $1$ & $10*6*3 = $ & $180$\\ \hline
+$3$ & $3$ & $0$ & $10*4*1 = $ & $40$\\ \hline \hline
+\multicolumn{3}{|r|}{$\sum$} & & $680$ \\ \hline
+\end{tabular}
+\end{document}
